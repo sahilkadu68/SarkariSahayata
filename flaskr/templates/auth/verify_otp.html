@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify OTP - SarkariSahayata</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:radial-gradient(circle at top,#1e293b,#020617);
+      font-family:'Poppins',sans-serif;
+      color:#fff;
+    }
+
+    .otp-card{
+      background:rgba(255,255,255,0.06);
+      backdrop-filter:blur(16px);
+      padding:34px;
+      border-radius:18px;
+      box-shadow:0 30px 70px rgba(0,0,0,.45);
+      max-width:420px;
+      width:90%;
+      text-align:center;
+    }
+
+    h2{
+      font-weight:700;
+      background:linear-gradient(90deg,#ff9933,#ffffff,#138808);
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      margin-bottom:8px;
+    }
+
+    p{
+      color:#cbd5f5;
+      font-size:.9rem;
+      margin-bottom:18px;
+    }
+
+    input{
+      width:100%;
+      padding:14px;
+      border-radius:10px;
+      border:none;
+      outline:none;
+      text-align:center;
+      font-size:18px;
+      letter-spacing:6px;
+      background:rgba(255,255,255,.12);
+      color:#fff;
+    }
+
+    button{
+      margin-top:18px;
+      width:100%;
+      padding:13px;
+      border:none;
+      border-radius:999px;
+      background:linear-gradient(90deg,#f97316,#22c55e);
+      color:#fff;
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    .resend{
+      margin-top:16px;
+      font-size:.85rem;
+    }
+
+    .resend a{
+      color:#22c55e;
+      text-decoration:none;
+      font-weight:500;
+    }
+
+    .alert{
+      background:rgba(255,255,255,.12);
+      padding:10px;
+      border-radius:8px;
+      margin-bottom:14px;
+      font-size:.85rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="otp-card">
+    <h2>Verify OTP</h2>
+    <p>OTP sent to <strong>{{ email_s }}</strong></p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alert">{{ messages[0] }}</div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+      <input name="otp" placeholder="Enter OTP" required>
+      <button type="submit">Verify & Continue →</button>
+    </form>
+
+    <div class="resend">
+      Didn’t receive OTP?
+      <a href="{{ url_for('auth.register') }}">Resend / Register Again</a>
+    </div>
+  </div>
+
+</body>
+</html>

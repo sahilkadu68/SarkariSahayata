@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Schemes — Admin</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+<style>
+body{background:#f1f5f9;}
+.sidebar-badge{font-size:10px;background:#22c55e;color:#fff;border-radius:10px;padding:2px 8px;margin-left:6px;}
+.sidebar-role{font-size:11px;color:#9ca3af;margin-top:4px;}
+.active-link{background:#1d4ed8!important;color:#fff!important;border-radius:6px;}
+.form-section{background:#fff;border-radius:12px;border:1px solid #e2e8f0;padding:24px 28px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.04);}
+.form-section h5{font-size:15px;font-weight:700;color:#1e3a8a;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #eff6ff;display:flex;align-items:center;gap:8px;}
+.form-section label{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block;}
+.form-control,.form-select{border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;padding:10px 12px;color:#1f2937;background:#fafafa;transition:border .2s;}
+.form-control:focus,.form-select:focus{border-color:#3b82f6;background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1);}
+textarea.form-control{resize:vertical;min-height:110px;font-family:'Segoe UI',sans-serif;}
+.table-builder{border:1.5px dashed #93c5fd;border-radius:10px;padding:16px;background:#f0f9ff;}
+.tbl-preview{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+.tbl-preview th{background:#1e3a8a;color:#fff;padding:8px 12px;text-align:left;}
+.tbl-preview td{border:1px solid #e2e8f0;padding:7px 12px;}
+.tbl-preview tr:nth-child(even) td{background:#f8fafc;}
+.col-input{border:1px solid #cbd5e1;border-radius:6px;padding:5px 8px;font-size:13px;width:100%;box-sizing:border-box;}
+.btn-remove-row{background:none;border:none;color:#ef4444;font-size:14px;cursor:pointer;padding:2px 6px;}
+.flash-success{background:#dcfce7;border:1px solid #86efac;color:#166534;border-radius:8px;padding:10px 16px;margin-bottom:14px;}
+.flash-danger{background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;border-radius:8px;padding:10px 16px;margin-bottom:14px;}
+.flash-warning{background:#fef9c3;border:1px solid #fde68a;color:#92400e;border-radius:8px;padding:10px 16px;margin-bottom:14px;}
+.add-toggle-btn{background:#fff;border:2px solid #3b82f6;color:#1e3a8a;border-radius:10px;padding:10px 20px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.add-toggle-btn:hover{background:#eff6ff;}
+.tbl-actions a,.tbl-actions button{padding:4px 10px;font-size:12px;border-radius:6px;}
+.category-pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.btn-save-scheme{background:linear-gradient(90deg,#1e3a8a,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:12px 32px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.btn-save-scheme:hover{opacity:.9;}
+.field-hint{font-size:11px;color:#94a3b8;margin-top:4px;margin-bottom:0;}
+.eligibility-box{background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;padding:16px;margin-top:14px;}
+</style>
+</head>
+<body>
+<div class="container-fluid">
+<div class="row g-0">
+
+<!-- SIDEBAR -->
+<div class="col-md-2 sticky-sidebar sticky-top" style="min-height:100vh;">
+  <div class="mb-3">
+    <h4 style="font-size:16px;">🏛️ SarkariSahayata</h4>
+    <div class="sidebar-role">👤 {{ admin_username }} <span class="sidebar-badge">{{ admin_role }}</span></div>
+  </div>
+  <a href="{{ url_for('admin.info_dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+  <a href="{{ url_for('admin.admin_dashboard') }}" class="active-link"><i class="bi bi-list-ul"></i> Manage Schemes</a>
+  <a href="{{ url_for('admin.view_user') }}"><i class="bi bi-people"></i> View Users</a>
+  <a href="{{ url_for('admin.activity_log') }}"><i class="bi bi-journal-text"></i> Activity Log</a>
+  <a href="{{ url_for('admin.export_schemes') }}" target="_blank"><i class="bi bi-download"></i> Export CSV</a>
+  <a href="{{ url_for('home.index') }}"><i class="bi bi-house"></i> Homepage</a>
+  <a href="{{ url_for('admin.admin_logout') }}" style="color:#f87171;margin-top:20px;border-top:1px solid #374151;padding-top:14px;"><i class="bi bi-box-arrow-right"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="col-md-10" style="padding:32px 36px;">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 style="font-size:22px;font-weight:800;color:#1e3a8a;margin:0;">Manage Schemes</h2>
+      <p class="text-muted small mb-0">Add, edit, search and delete government schemes</p>
+    </div>
+    <button class="add-toggle-btn" type="button" onclick="toggleAddPanel()">
+      <i class="bi bi-plus-circle" id="addIcon"></i><span id="addLabel">Add New Scheme</span>
+    </button>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="flash-{{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+
+  <!-- ADD SCHEME FORM -->
+  <div id="addSchemePanel" style="display:none;">
+  <form method="POST" id="schemeForm">
+
+    <!-- Basic Info -->
+    <div class="form-section">
+      <h5><i class="bi bi-info-circle-fill"></i> Basic Information</h5>
+      <div class="row g-3">
+        <div class="col-md-8">
+          <label>Scheme Title *</label>
+          <input type="text" name="title" class="form-control" placeholder="e.g. PM Kisan Samman Nidhi" required>
+        </div>
+        <div class="col-md-4">
+          <label>Category *</label>
+          <select name="category" class="form-select" required>
+            <option value="">— Select Category —</option>
+            <option>Agriculture</option><option>Education</option><option>Health</option>
+            <option>Housing</option><option>Skills and Employment</option>
+            <option>Women and Child</option><option>Transport</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label>Tags <span style="font-weight:400;text-transform:none;">(comma separated)</span></label>
+          <input type="text" name="tags" class="form-control" placeholder="e.g. Youth, Business, StartUp, Farmer">
+          <p class="field-hint">These tags appear as badges on the scheme page like myScheme.gov.in</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div class="form-section">
+      <h5><i class="bi bi-file-text-fill"></i> Scheme Details</h5>
+      <div class="mb-3">
+        <label>Description / Overview</label>
+        <textarea name="description" class="form-control" rows="6"
+          placeholder="Paste the full description text here. Copy-paste directly from any official website like myScheme.gov.in."></textarea>
+        <p class="field-hint">Full text, no formatting needed. Copy-paste from official sources.</p>
+      </div>
+      <div class="mb-0">
+        <label>Objectives</label>
+        <textarea name="objectives" class="form-control" rows="4"
+          placeholder="Paste objectives here. Each line becomes a bullet point.
+Example:
+To promote entrepreneurship among local unemployed youth
+To generate self-employment in rural and urban areas"></textarea>
+        <p class="field-hint">One objective per line = one bullet point on the scheme page.</p>
+      </div>
+    </div>
+
+    <!-- Benefits -->
+    <div class="form-section">
+      <h5><i class="bi bi-award-fill"></i> Benefits</h5>
+      <textarea name="benefits" class="form-control" rows="5"
+        placeholder="Paste benefits text. Each line = one bullet point.
+Example:
+Financial support through bank loans with back-ended subsidy of 35% or 50%
+Maximum admissible project cost up to Rs 20 lakhs
+Mandatory Entrepreneur Development Training (3 days) provided before loan disbursement"></textarea>
+      <p class="field-hint">Copy-paste from the Benefits section of the official scheme page.</p>
+    </div>
+
+    <!-- Eligibility - FULL FREE TEXT -->
+    <div class="form-section">
+      <h5><i class="bi bi-person-check-fill"></i> Eligibility Criteria</h5>
+      <textarea name="eligibility" class="form-control" rows="8"
+        placeholder="COPY-PASTE the full eligibility text here directly from the official website.
+Example:
+Applicant must possess a Certificate of Identification (COI) or Sikkim Subject Certificate
+Applicant must be unemployed and have completed at least Class V
+Applicant must be between 18 to 45 years of age
+Only one member per family is eligible to apply
+Family income must not exceed Rs 8 lakhs per annum
+Applicant must not be a defaulter with any nationalized bank"></textarea>
+      <p class="field-hint">Each line = one bullet point. Copy-paste everything as-is from the official source.</p>
+
+      <!-- Eligibility filters (hidden section) -->
+      <div class="eligibility-box mt-3">
+        <p style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:12px;">
+          <i class="bi bi-gear-fill"></i> ELIGIBILITY FILTERS
+          <span style="font-weight:400;">(used for auto-matching users — fill only if you want automatic eligibility check)</span>
+        </p>
+        <div class="row g-2">
+          <div class="col-md-3"><label>Min Age</label><input type="number" name="min_age" class="form-control" placeholder="e.g. 18"></div>
+          <div class="col-md-3"><label>Max Age</label><input type="number" name="max_age" class="form-control" placeholder="e.g. 45"></div>
+          <div class="col-md-3"><label>Max Annual Income (Rs)</label><input type="number" name="max_income" class="form-control" placeholder="e.g. 800000"></div>
+          <div class="col-md-3"><label>Gender</label><input type="text" name="gender" class="form-control" placeholder="Any / Male / Female"></div>
+          <div class="col-md-4"><label>Caste</label><input type="text" name="caste" class="form-control" placeholder="Any / SC / ST / OBC / General"></div>
+          <div class="col-md-4"><label>State</label><input type="text" name="state" class="form-control" placeholder="Any or specific state name"></div>
+          <div class="col-md-4"><label>Occupation</label><input type="text" name="occupation" class="form-control" placeholder="Any / Farmer / Student / etc."></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exclusions -->
+    <div class="form-section">
+      <h5><i class="bi bi-slash-circle-fill" style="color:#ef4444;"></i> Exclusions</h5>
+      <textarea name="exclusions" class="form-control" rows="4"
+        placeholder="Who is NOT eligible? Paste exclusion criteria here.
+Example:
+Individuals who have already availed subsidy under CMSS or PMEGP schemes
+Applicants who are bank defaulters
+Government employees' children (except Group C and D service)"></textarea>
+      <p class="field-hint">Each line = one bullet point. Leave blank if no exclusions.</p>
+    </div>
+
+    <!-- Application Process -->
+    <div class="form-section">
+      <h5><i class="bi bi-send-fill"></i> Application Process</h5>
+      <textarea name="application_process" class="form-control" rows="6"
+        placeholder="Paste the application steps here. Each line = one numbered step.
+Example:
+Submit the prescribed application form (Annexure-I) along with the Detailed Project Report (DPR)
+Submit to General Manager, District Industries Centre (DIC) at Gangtok or Jorethang
+Application is reviewed by a Selection Committee comprising departmental and bank representatives
+Post-approval, the project is forwarded to banks for loan sanctioning
+Training completion is mandatory before disbursement"></textarea>
+      <p class="field-hint">Each line = one step in the process.</p>
+    </div>
+
+    <!-- Documents Required -->
+    <div class="form-section">
+      <h5><i class="bi bi-file-earmark-text-fill"></i> Documents Required</h5>
+      <textarea name="documents" class="form-control" rows="6"
+        placeholder="Paste required documents list. Each line = one document.
+Example:
+Two recent passport-sized photographs
+Sikkim Subject Certificate / COI / Residential Certificate
+Educational certificates and mark sheets
+Birth Certificate or Panchayat certification
+Project Report verified by the concerned Line Department (2 copies)
+Voter ID card (as address proof)
+Unemployment Card from respective BAC"></textarea>
+      <p class="field-hint">Each line = one document in the numbered list.</p>
+    </div>
+
+    <!-- FAQ -->
+    <div class="form-section">
+      <h5><i class="bi bi-question-circle-fill"></i> Frequently Asked Questions (FAQ)</h5>
+      <textarea name="faq" class="form-control" rows="8"
+        placeholder="Use Q: / A: format. Each pair = one accordion item.
+Example:
+Q: Who can apply for the Skilled Youth Startup Scheme (SYSS)?
+A: Any unemployed youth aged 18-45 years who is a resident of Sikkim can apply.
+Q: What is the age limit to apply?
+A: The applicant must be between 18 to 45 years of age at the time of application.
+Q: Is there any minimum educational qualification required?
+A: Applicant must have completed at least Class V from a recognized school."></textarea>
+      <p class="field-hint">Each Q/A pair will appear as an expandable accordion on the scheme detail page.</p>
+    </div>
+
+    <!-- Table Builder -->
+    <div class="form-section">
+      <h5><i class="bi bi-table"></i> Add a Table (optional)</h5>
+      <div class="table-builder">
+        <div class="row g-2 mb-3 align-items-end">
+          <div class="col-md-4">
+            <label style="font-size:12px;font-weight:600;color:#475569;display:block;">Show this table under section:</label>
+            <select name="table_section" class="form-select form-select-sm">
+              <option value="benefits">Benefits</option>
+              <option value="description">Description / Details</option>
+              <option value="eligibility">Eligibility</option>
+              <option value="application_process">Application Process</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addColumn()"><i class="bi bi-plus"></i> Add Column</button>
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-sm btn-success" onclick="addRow()"><i class="bi bi-plus"></i> Add Row</button>
+          </div>
+          <div class="col-auto">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearTable()"><i class="bi bi-trash"></i> Clear</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="tbl-preview" id="tableBuilder">
+            <thead>
+              <tr id="headerRow">
+                <th><input class="col-input" value="S.No."></th>
+                <th><input class="col-input" value="Category"></th>
+                <th><input class="col-input" value="Amount / Details"></th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td><input class="col-input" placeholder="1"></td>
+                <td><input class="col-input" placeholder="Item name"></td>
+                <td><input class="col-input" placeholder="Value"></td>
+                <td><button type="button" class="btn-remove-row" onclick="removeRow(this)">✕</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="field-hint mt-2">Build your table by filling cells. Leave completely empty if no table needed.</p>
+        <input type="hidden" name="table_data" id="tableDataInput">
+      </div>
+    </div>
+
+    <div class="d-flex gap-3 mt-2 mb-5">
+      <button type="submit" class="btn-save-scheme" onclick="serializeTable()">
+        <i class="bi bi-cloud-check"></i> Save Scheme
+      </button>
+      <button type="button" class="btn btn-outline-secondary" onclick="toggleAddPanel()" style="border-radius:10px;font-weight:600;">Cancel</button>
+    </div>
+
+  </form>
+  </div>
+
+  <!-- SEARCH + FILTER -->
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <form method="GET" class="d-flex gap-2 flex-wrap">
+      <input type="text" name="q" class="form-control" style="max-width:280px;" placeholder="Search schemes..." value="{{ search or '' }}">
+      <select name="cat" class="form-select" style="max-width:180px;">
+        <option value="">All Categories</option>
+        {% for c in ["Agriculture","Education","Health","Housing","Skills and Employment","Women and Child","Transport"] %}
+          <option {% if cat_filter==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-primary btn-sm px-3">Search</button>
+      {% if search or cat_filter %}<a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+    </form>
+    <a href="{{ url_for('admin.export_schemes') }}" class="btn btn-success btn-sm ms-auto px-3"><i class="bi bi-download"></i> Export CSV</a>
+  </div>
+
+  <!-- SCHEMES TABLE -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <span class="fw-bold" style="color:#1e3a8a;">All Schemes</span>
+        <span class="text-muted small">{{ schemes|length }} scheme(s)</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead style="background:#f8fafc;">
+            <tr>
+              <th style="font-size:12px;color:#64748b;">#</th>
+              <th style="font-size:12px;color:#64748b;">Title</th>
+              <th style="font-size:12px;color:#64748b;">Category</th>
+              <th style="font-size:12px;color:#64748b;">Filters</th>
+              <th style="font-size:12px;color:#64748b;text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for s in schemes %}
+            <tr>
+              <td class="text-muted small ps-4">{{ s.id }}</td>
+              <td>
+                <strong style="font-size:14px;">{{ s.title }}</strong>
+                {% if s.description %}<div class="text-muted" style="font-size:12px;">{{ s.description[:70] }}{% if s.description|length > 70 %}…{% endif %}</div>{% endif %}
+              </td>
+              <td><span class="badge bg-success category-pill">{{ s.category }}</span></td>
+              <td style="font-size:12px;color:#64748b;">
+                {% if s.min_age or s.max_age %}Age: {{ s.min_age or '?' }}-{{ s.max_age or '?' }}<br>{% endif %}
+                {% if s.max_income %}Income: Rs{{ s.max_income }}<br>{% endif %}
+                {% if not s.min_age and not s.max_age and not s.max_income %}<span class="text-muted">–</span>{% endif %}
+              </td>
+              <td class="text-center tbl-actions pe-3">
+                <a href="{{ url_for('admin.edit_scheme', scheme_id=s.id) }}" class="btn btn-warning btn-sm me-1"><i class="bi bi-pencil"></i> Edit</a>
+                <form method="POST" action="{{ url_for('admin.delete_scheme', scheme_id=s.id) }}" style="display:inline;" onsubmit="return confirm('Delete this scheme?')">
+                  <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-5">No schemes yet. Add one above!</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function toggleAddPanel(){
+  const p=document.getElementById('addSchemePanel');
+  const i=document.getElementById('addIcon');
+  const l=document.getElementById('addLabel');
+  if(p.style.display==='none'){p.style.display='block';i.className='bi bi-dash-circle';l.textContent=' Hide Form';p.scrollIntoView({behavior:'smooth',block:'start'});}
+  else{p.style.display='none';i.className='bi bi-plus-circle';l.textContent='Add New Scheme';}
+}
+function getColCount(){return document.getElementById('headerRow').querySelectorAll('th').length;}
+function addColumn(){
+  const hr=document.getElementById('headerRow');
+  const th=document.createElement('th');th.innerHTML='<input class="col-input" placeholder="Column header">';hr.appendChild(th);
+  document.querySelectorAll('#tableBody tr').forEach(row=>{
+    const last=row.querySelector('td:last-child');const td=document.createElement('td');td.innerHTML='<input class="col-input" placeholder="">';row.insertBefore(td,last);
+  });
+}
+function addRow(){
+  const tbody=document.getElementById('tableBody');const cols=getColCount();const tr=document.createElement('tr');
+  let c='';for(let i=0;i<cols;i++)c+=`<td><input class="col-input" placeholder=""></td>`;
+  c+=`<td><button type="button" class="btn-remove-row" onclick="removeRow(this)">x</button></td>`;
+  tr.innerHTML=c;tbody.appendChild(tr);
+}
+function removeRow(btn){btn.closest('tr').remove();}
+function clearTable(){
+  if(!confirm('Clear the table?'))return;
+  document.getElementById('tableBody').innerHTML='';
+  document.getElementById('headerRow').innerHTML='<th><input class="col-input" value="S.No."></th><th><input class="col-input" value="Category"></th><th><input class="col-input" value="Amount / Details"></th>';
+  addRow();
+}
+function serializeTable(){
+  const headers=[];document.querySelectorAll('#headerRow th input').forEach(i=>headers.push(i.value.trim()));
+  const rows=[];document.querySelectorAll('#tableBody tr').forEach(tr=>{
+    const cells=[];tr.querySelectorAll('td input').forEach(i=>cells.push(i.value.trim()));
+    if(cells.some(c=>c!==''))rows.push(cells);
+  });
+  if(rows.length===0||headers.every(h=>h==='')){document.getElementById('tableDataInput').value='';return;}
+  document.getElementById('tableDataInput').value=JSON.stringify({headers,rows});
+}
+</script>
+</body>
+</html>

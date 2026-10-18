@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Users — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <style>
+    .sidebar-badge { font-size:10px; background:#22c55e; color:#fff; border-radius:10px; padding:2px 7px; margin-left:6px; }
+    .sidebar-role  { font-size:11px; color:#9ca3af; margin-top:4px; }
+    .active-link   { background:#1d4ed8 !important; color:#fff !important; border-radius:6px; }
+    .user-type-master { background:#7c3aed; color:#fff; }
+    .user-type-admin  { background:#1d4ed8; color:#fff; }
+    .user-type-user   { background:#6b7280; color:#fff; }
+    .flash-danger  { background:#fee2e2; border:1px solid #fca5a5; color:#991b1b; border-radius:8px; padding:10px 16px; margin-bottom:16px; }
+    .flash-warning { background:#fef9c3; border:1px solid #fde68a; color:#92400e; border-radius:8px; padding:10px 16px; margin-bottom:16px; }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+<div class="col-md-2 sticky-sidebar sticky-top" style="min-height:100vh;">
+  <div class="mb-3">
+    <h4 style="font-size:16px;">🏛️ SarkariSahayata</h4>
+    <div class="sidebar-role">👤 {{ admin_username }}
+      <span class="sidebar-badge">{{ admin_role }}</span>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.info_dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+  <a href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-list-ul"></i> Manage Schemes</a>
+  <a href="{{ url_for('admin.view_user') }}" class="active-link"><i class="bi bi-people"></i> View Users</a>
+  <a href="{{ url_for('admin.activity_log') }}"><i class="bi bi-journal-text"></i> Activity Log</a>
+  <a href="{{ url_for('admin.export_schemes') }}" target="_blank"><i class="bi bi-download"></i> Export CSV</a>
+  <a href="{{ url_for('home.index') }}"><i class="bi bi-house"></i> Homepage</a>
+  <a href="{{ url_for('admin.admin_logout') }}" style="color:#f87171;margin-top:20px;border-top:1px solid #374151;padding-top:14px;">
+    <i class="bi bi-box-arrow-right"></i> Logout
+  </a>
+</div>
+
+<!-- MAIN -->
+<div class="col-md-10 dashboard-content">
+  <h2 class="page-title"><i class="bi bi-people"></i> Registered Users</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- SEARCH -->
+  <form method="GET" class="d-flex gap-2 mb-3" style="max-width:420px;">
+    <input type="text" name="q" class="form-control"
+           placeholder="🔍 Search by username or email..."
+           value="{{ search or '' }}">
+    <button class="btn btn-primary btn-sm">Search</button>
+    {% if search %}
+      <a href="{{ url_for('admin.view_user') }}" class="btn btn-outline-secondary btn-sm">✕</a>
+    {% endif %}
+  </form>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom">
+        <span class="fw-bold">All Users</span>
+        <span class="text-muted small">{{ users|length }} user(s) found</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="usersTable">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+              {% if admin_role == 'master' %}<th class="text-center">Actions</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+          {% for user in users %}
+            <tr>
+              <td class="text-muted small">{{ user.id if user.id is defined else loop.index }}</td>
+              <td>
+                <i class="bi bi-person-circle text-secondary me-1"></i>
+                {{ user.username }}
+              </td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="badge user-type-{{ user.user_type }}">
+                  {{ user.user_type }}
+                </span>
+              </td>
+              {% if admin_role == 'master' %}
+              <td class="text-center">
+                {% if user.user_type != 'master' %}
+                <form method="POST"
+                      action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Permanently delete user \'{{ user.username }}\'?')">
+                  <button type="submit" class="btn btn-danger btn-sm">
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+                </form>
+                {% else %}
+                  <span class="text-muted small">Protected</span>
+                {% endif %}
+              </td>
+              {% endif %}
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">No users found.</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

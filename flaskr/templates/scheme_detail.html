@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ scheme.title }} — SarkariSahayata</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+/* ── Base ── */
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',sans-serif;background:#f4f6f9;color:#1f2937;}
+
+/* ── Top bar (Indian gov style) ── */
+.gov-topbar{background:linear-gradient(90deg,#FF9933 0%,#FF9933 33%,#fff 33%,#fff 67%,#138808 67%,#138808 100%);height:5px;}
+
+/* ── Header ── */
+.site-header{background:#fff;border-bottom:2px solid #e5e7eb;padding:10px 0;}
+.site-header .brand{font-size:18px;font-weight:800;color:#1e3a8a;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.site-header .brand span{font-size:12px;font-weight:400;color:#6b7280;display:block;}
+
+/* ── Breadcrumb ── */
+.breadcrumb-bar{background:#eff6ff;padding:8px 0;border-bottom:1px solid #dbeafe;}
+.breadcrumb-bar a{color:#1d4ed8;text-decoration:none;font-size:13px;}
+.breadcrumb-bar .sep{color:#94a3b8;margin:0 6px;}
+
+/* ── Layout ── */
+.page-layout{display:flex;max-width:1200px;margin:0 auto;padding:24px 16px;gap:24px;}
+
+/* ── Left sidebar nav (myScheme style) ── */
+.left-nav{width:220px;flex-shrink:0;}
+.left-nav-inner{background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;position:sticky;top:20px;}
+.left-nav a{display:block;padding:11px 18px;font-size:13px;font-weight:500;color:#374151;text-decoration:none;border-bottom:1px solid #f1f5f9;transition:all .15s;}
+.left-nav a:hover{background:#eff6ff;color:#1d4ed8;padding-left:22px;}
+.left-nav a.active{background:#1e3a8a;color:#fff;font-weight:700;}
+.left-nav a:last-child{border-bottom:none;}
+
+/* ── Main content ── */
+.main-content{flex:1;min-width:0;}
+
+/* ── Scheme header card ── */
+.scheme-header-card{background:#fff;border-radius:14px;padding:28px 32px;margin-bottom:20px;border:1px solid #e5e7eb;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.scheme-category-state{font-size:12px;color:#6b7280;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.scheme-main-title{font-size:26px;font-weight:800;color:#1e3a8a;margin:0 0 14px 0;line-height:1.3;}
+.tag-pill{display:inline-block;border:1.5px solid #3b82f6;color:#1d4ed8;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin:3px 4px 3px 0;}
+.check-elig-btn{display:inline-flex;align-items:center;gap:8px;background:#1e3a8a;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;text-decoration:none;margin-top:16px;transition:background .2s;}
+.check-elig-btn:hover{background:#1d4ed8;color:#fff;}
+
+/* ── Section cards ── */
+.section-card{background:#fff;border-radius:12px;padding:28px 32px;margin-bottom:18px;border:1px solid #e5e7eb;box-shadow:0 1px 4px rgba(0,0,0,.03);}
+.section-anchor{scroll-margin-top:80px;}
+.section-heading{font-size:19px;font-weight:800;color:#1e3a8a;margin:0 0 18px 0;padding-bottom:12px;border-bottom:2px solid #eff6ff;}
+.section-heading i{margin-right:8px;font-size:17px;}
+.section-text{font-size:14px;line-height:1.75;color:#374151;}
+.section-list{padding-left:0;list-style:none;margin:0;}
+.section-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f8fafc;font-size:14px;line-height:1.6;color:#374151;}
+.section-list li:last-child{border-bottom:none;}
+.section-list li::before{content:"●";color:#3b82f6;font-size:10px;margin-top:5px;flex-shrink:0;}
+.exclusion-list li::before{color:#ef4444;}
+.numbered-list{padding-left:0;list-style:none;counter-reset:step;margin:0;}
+.numbered-list li{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid #f8fafc;font-size:14px;line-height:1.6;color:#374151;}
+.numbered-list li:last-child{border-bottom:none;}
+.step-num{background:#1e3a8a;color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+/* ── Tables ── */
+.scheme-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px;}
+.scheme-table th{background:#1e3a8a;color:#fff;padding:10px 14px;text-align:left;font-weight:600;}
+.scheme-table td{padding:9px 14px;border:1px solid #e5e7eb;color:#374151;}
+.scheme-table tr:nth-child(even) td{background:#f8fafc;}
+.scheme-table th:first-child{width:60px;}
+
+/* ── FAQ accordion ── */
+.faq-item{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px;overflow:hidden;}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;cursor:pointer;font-size:14px;font-weight:600;color:#1f2937;background:#fff;transition:background .15s;}
+.faq-q:hover{background:#eff6ff;}
+.faq-q.open{background:#1e3a8a;color:#fff;}
+.faq-q.open i{transform:rotate(180deg);}
+.faq-a{display:none;padding:14px 18px;font-size:14px;color:#374151;background:#f8fafc;border-top:1px solid #e5e7eb;line-height:1.7;}
+.faq-a.show{display:block;}
+.faq-q i{transition:transform .2s;flex-shrink:0;}
+
+/* ── Lang button ── */
+.lang-float{position:fixed;top:20px;right:20px;z-index:1000;display:flex;align-items:center;gap:6px;border:1px solid #dbeafe;background:#eff6ff;color:#1d4ed8;padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.1);}
+
+/* ── Back button ── */
+.back-link{display:inline-flex;align-items:center;gap:6px;color:#1d4ed8;text-decoration:none;font-size:13px;font-weight:600;padding:8px 16px;border:1.5px solid #dbeafe;border-radius:8px;background:#fff;transition:all .2s;}
+.back-link:hover{background:#eff6ff;}
+
+/* ── Translating state ── */
+.translating{opacity:.4;transition:opacity .3s;}
+
+/* ── Note/aside block ── */
+.scheme-note{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:0 8px 8px 0;margin:12px 0;font-size:13px;color:#92400e;}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .page-layout{flex-direction:column;}
+  .left-nav{width:100%;}
+  .left-nav-inner{display:flex;overflow-x:auto;border-radius:8px;}
+  .left-nav a{border-bottom:none;border-right:1px solid #f1f5f9;white-space:nowrap;flex-shrink:0;}
+}
+
+/* ════════════════════════════════════════
+   TTS AUDIO PLAYER — Floating Panel
+   ════════════════════════════════════════ */
+#ttsPanel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 340px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.18);
+  border: 1.5px solid #e0e7ff;
+  overflow: hidden;
+  transition: transform .3s, opacity .3s;
+  font-family: 'Segoe UI', sans-serif;
+}
+#ttsPanel.tts-hidden { transform: translateY(120%); opacity: 0; pointer-events: none; }
+
+/* Header strip */
+.tts-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  color: #fff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tts-header-left { display: flex; align-items: center; gap: 8px; }
+.tts-header-left .tts-icon { font-size: 20px; }
+.tts-header-title { font-size: 14px; font-weight: 700; }
+.tts-header-sub { font-size: 11px; opacity: .75; }
+.tts-close-btn { background: rgba(255,255,255,.15); border: none; color: #fff; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: background .2s; }
+.tts-close-btn:hover { background: rgba(255,255,255,.3); }
+
+/* Body */
+.tts-body { padding: 14px 16px 16px; }
+
+/* Lang select */
+.tts-lang-label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.tts-lang-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #1f2937;
+  background: #f8fafc;
+  cursor: pointer;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.tts-lang-select:focus { border-color: #1d4ed8; }
+
+/* Progress bar */
+.tts-progress-wrap { height: 5px; background: #e5e7eb; border-radius: 99px; margin-bottom: 10px; overflow: hidden; }
+.tts-progress-bar { height: 100%; background: linear-gradient(90deg, #1e3a8a, #3b82f6); border-radius: 99px; width: 0%; transition: width .4s linear; }
+
+/* Status text */
+.tts-status { font-size: 12px; color: #6b7280; margin-bottom: 12px; min-height: 18px; text-align: center; }
+.tts-status.loading { color: #d97706; }
+.tts-status.playing { color: #059669; }
+.tts-status.error { color: #dc2626; }
+
+/* Controls */
+.tts-controls { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.tts-btn {
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  font-size: 16px;
+}
+.tts-btn-main {
+  width: 50px; height: 50px;
+  background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 4px 14px rgba(30,58,138,.35);
+}
+.tts-btn-main:hover { transform: scale(1.08); box-shadow: 0 6px 18px rgba(30,58,138,.45); }
+.tts-btn-main:disabled { background: #9ca3af; box-shadow: none; cursor: not-allowed; transform: none; }
+.tts-btn-sm { width: 38px; height: 38px; background: #f1f5f9; color: #374151; }
+.tts-btn-sm:hover { background: #e0e7ff; color: #1d4ed8; }
+.tts-btn-sm:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Speed control */
+.tts-speed-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.tts-speed-label { font-size: 11px; color: #6b7280; font-weight: 600; }
+.tts-speed-btns { display: flex; gap: 4px; }
+.tts-speed-btn {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  background: #fff;
+  cursor: pointer;
+  transition: all .15s;
+}
+.tts-speed-btn.active { background: #1e3a8a; color: #fff; border-color: #1e3a8a; }
+
+/* Trigger FAB */
+#ttsFab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9998;
+  background: linear-gradient(135deg, #FF9933 0%, #e07b00 100%);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(255,153,51,.5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .2s;
+}
+#ttsFab:hover { transform: scale(1.05); box-shadow: 0 6px 24px rgba(255,153,51,.65); }
+#ttsFab.tts-fab-hidden { display: none; }
+
+@media(max-width:480px) {
+  #ttsPanel { width: calc(100vw - 24px); right: 12px; bottom: 12px; }
+  #ttsFab { right: 12px; bottom: 12px; padding: 10px 16px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Indian tri-colour top bar -->
+<div class="gov-topbar"></div>
+
+<!-- Header -->
+<header class="site-header">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a href="{{ url_for('home.index') }}" class="brand">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" height="38" alt="logo" onerror="this.style.display='none'">
+      <div>SarkariSahayata <span>सरकारी सहायता — Smart Schemes Portal</span></div>
+    </a>
+    <button type="button" class="lang-float" id="openLanguageModal">
+      <i class="bi bi-translate"></i> Choose Language
+    </button>
+  </div>
+</header>
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-bar">
+  <div class="container">
+    <a href="{{ url_for('home.index') }}">Home</a>
+    <span class="sep">›</span>
+    <a href="{{ url_for('categories.show_category', category_name=scheme.category) }}">{{ scheme.category }}</a>
+    <span class="sep">›</span>
+    <span style="color:#374151;font-size:13px;">{{ scheme.title }}</span>
+  </div>
+</div>
+
+<!-- Page layout -->
+<div class="page-layout">
+
+  <!-- LEFT NAV -->
+  <nav class="left-nav">
+    <div class="left-nav-inner">
+      {% if scheme.description or scheme.objectives %}
+        <a href="#details" class="active" onclick="setActive(this)">Details</a>
+      {% endif %}
+      {% if scheme.benefits %}
+        <a href="#benefits" onclick="setActive(this)">Benefits</a>
+      {% endif %}
+      {% if scheme.eligibility or scheme.min_age or scheme.max_age %}
+        <a href="#eligibility" onclick="setActive(this)">Eligibility</a>
+      {% endif %}
+      {% if scheme.exclusions %}
+        <a href="#exclusions" onclick="setActive(this)">Exclusions</a>
+      {% endif %}
+      {% if scheme.application_process %}
+        <a href="#application" onclick="setActive(this)">Application Process</a>
+      {% endif %}
+      {% if scheme.documents %}
+        <a href="#documents" onclick="setActive(this)">Documents Required</a>
+      {% endif %}
+      {% if scheme.faq %}
+        <a href="#faq" onclick="setActive(this)">FAQ</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- Scheme header -->
+    <div class="scheme-header-card">
+      <div class="scheme-category-state">{{ scheme.category }}{% if scheme.state %} · {{ scheme.state }}{% endif %}</div>
+      <h1 class="scheme-main-title scheme-title-el" data-title="{{ scheme.title }}">{{ scheme.title }}</h1>
+
+      <!-- Tags -->
+      {% if scheme.tags %}
+        <div>
+          {% for tag in scheme.tags.split(',') %}
+            {% if tag.strip() %}
+              <span class="tag-pill">{{ tag.strip() }}</span>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <a href="{{ url_for('home.eligibility') }}" class="check-elig-btn">
+        <i class="bi bi-check-circle"></i> Check Eligibility
+      </a>
+    </div>
+
+    <!-- DETAILS / DESCRIPTION + OBJECTIVES -->
+    {% if scheme.description or scheme.objectives %}
+    <div class="section-card section-anchor" id="details">
+      <h2 class="section-heading"><i class="bi bi-file-text"></i>Details</h2>
+      {% if scheme.description %}
+        <div class="section-text scheme-desc-el" data-desc="{{ scheme.description }}">{{ scheme.description }}</div>
+      {% endif %}
+      {% if scheme.objectives %}
+        <h4 style="font-size:15px;font-weight:700;color:#374151;margin:20px 0 10px;text-decoration:underline;">Objectives:</h4>
+        <ul class="section-list scheme-objectives-el" data-objectives="{{ scheme.objectives }}">
+          {% for line in scheme.objectives.split('\n') if line.strip() %}
+            <li><span>{{ line }}</span></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if scheme.table_section == 'description' and scheme.table_data %}
+        {{ render_table(scheme.table_data) }}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- BENEFITS -->
+    {% if scheme.benefits %}
+    <div class="section-card section-anchor" id="benefits">
+      <h2 class="section-heading"><i class="bi bi-award"></i>Benefits</h2>
+      <ul class="section-list scheme-benefits-el" data-benefits="{{ scheme.benefits }}">
+        {% for line in scheme.benefits.split('\n') if line.strip() %}
+          <li><span>{{ line }}</span></li>
+        {% endfor %}
+      </ul>
+      {% if scheme.table_section == 'benefits' and scheme.table_data %}
+        {% set tbl = scheme.table_data | from_json %}
+        {% if tbl %}
+        <div class="table-responsive mt-3">
+          <table class="scheme-table">
+            <thead>
+              <tr>{% for h in tbl.headers %}<th>{{ h }}</th>{% endfor %}</tr>
+            </thead>
+            <tbody>
+              {% for row in tbl.rows %}
+              <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ELIGIBILITY -->
+    {% if scheme.eligibility or scheme.min_age or scheme.max_age or scheme.max_income %}
+    <div class="section-card section-anchor" id="eligibility">
+      <h2 class="section-heading"><i class="bi bi-person-check"></i>Eligibility</h2>
+      {% if scheme.eligibility %}
+        <ul class="section-list scheme-eligibility-el" data-eligibility="{{ scheme.eligibility }}">
+          {% for line in scheme.eligibility.split('\n') if line.strip() %}
+            <li><span>{{ line }}</span></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% if scheme.min_age or scheme.max_age or scheme.max_income or scheme.gender or scheme.caste or scheme.occupation %}
+        <div class="mt-3 p-3" style="background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;">
+          <p style="font-size:12px;font-weight:700;color:#166534;margin-bottom:8px;"><i class="bi bi-sliders"></i> Quick Eligibility Summary</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            {% if scheme.min_age %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Min Age: {{ scheme.min_age }}yrs</span>{% endif %}
+            {% if scheme.max_age %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Max Age: {{ scheme.max_age }}yrs</span>{% endif %}
+            {% if scheme.max_income %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Max Income: ₹{{ scheme.max_income }}</span>{% endif %}
+            {% if scheme.gender %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Gender: {{ scheme.gender }}</span>{% endif %}
+            {% if scheme.caste %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Caste: {{ scheme.caste }}</span>{% endif %}
+            {% if scheme.occupation %}<span style="background:#fff;border:1px solid #d1fae5;border-radius:6px;padding:4px 10px;font-size:12px;color:#065f46;">Occupation: {{ scheme.occupation }}</span>{% endif %}
+          </div>
+        </div>
+      {% endif %}
+      {% if scheme.table_section == 'eligibility' and scheme.table_data %}
+        {% set tbl = scheme.table_data | from_json %}
+        {% if tbl %}
+        <div class="table-responsive mt-3">
+          <table class="scheme-table">
+            <thead><tr>{% for h in tbl.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in tbl.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+          </table>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- EXCLUSIONS -->
+    {% if scheme.exclusions %}
+    <div class="section-card section-anchor" id="exclusions">
+      <h2 class="section-heading" style="color:#b91c1c;"><i class="bi bi-slash-circle"></i>Exclusions</h2>
+      <ul class="section-list exclusion-list scheme-exclusions-el" data-exclusions="{{ scheme.exclusions }}">
+        {% for line in scheme.exclusions.split('\n') if line.strip() %}
+          <li><span>{{ line }}</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <!-- APPLICATION PROCESS -->
+    {% if scheme.application_process %}
+    <div class="section-card section-anchor" id="application">
+      <h2 class="section-heading"><i class="bi bi-send"></i>Application Process</h2>
+      <ol class="numbered-list scheme-appprocess-el" data-appprocess="{{ scheme.application_process }}">
+        {% for line in scheme.application_process.split('\n') if line.strip() %}
+          <li>
+            <span class="step-num">{{ loop.index }}</span>
+            <span>{{ line }}</span>
+          </li>
+        {% endfor %}
+      </ol>
+      {% if scheme.table_section == 'application_process' and scheme.table_data %}
+        {% set tbl = scheme.table_data | from_json %}
+        {% if tbl %}
+        <div class="table-responsive mt-3">
+          <table class="scheme-table">
+            <thead><tr>{% for h in tbl.headers %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+            <tbody>{% for row in tbl.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+          </table>
+        </div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- DOCUMENTS REQUIRED -->
+    {% if scheme.documents %}
+    <div class="section-card section-anchor" id="documents">
+      <h2 class="section-heading"><i class="bi bi-file-earmark-text"></i>Documents Required</h2>
+      <ol class="numbered-list scheme-documents-el" data-documents="{{ scheme.documents }}">
+        {% for line in scheme.documents.split('\n') if line.strip() %}
+          <li>
+            <span class="step-num">{{ loop.index }}</span>
+            <span>{{ line }}</span>
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+    {% endif %}
+
+    <!-- FAQ -->
+    {% if scheme.faq %}
+    <div class="section-card section-anchor" id="faq">
+      <h2 class="section-heading"><i class="bi bi-question-circle"></i>Frequently Asked Questions</h2>
+      <div id="faqContainer">
+        {% set faq_lines = scheme.faq.split('\n') %}
+        {% set ns = namespace(q='', a='') %}
+        {% for line in faq_lines %}
+          {% if line.strip().startswith('Q:') %}
+            {% set ns.q = line.strip()[2:].strip() %}
+          {% elif line.strip().startswith('A:') %}
+            {% set ns.a = line.strip()[2:].strip() %}
+            {% if ns.q and ns.a %}
+            <div class="faq-item">
+              <div class="faq-q" onclick="toggleFaq(this)">
+                <span>{{ ns.q }}</span>
+                <i class="bi bi-chevron-down"></i>
+              </div>
+              <div class="faq-a">{{ ns.a }}</div>
+            </div>
+            {% set ns.q = '' %}{% set ns.a = '' %}
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Back button -->
+    <div class="mt-3 mb-5">
+      <a href="{{ url_for('categories.show_category', category_name=scheme.category) }}" class="back-link">
+        <i class="bi bi-arrow-left"></i> Back to {{ scheme.category }} Schemes
+      </a>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /page-layout -->
+
+<!-- LANGUAGE MODAL -->
+<div class="lang-modal-overlay" id="langModalOverlay">
+  <div class="lang-modal-box">
+    <div class="lang-modal-header">
+      <div>
+        <h3 data-i18n="choose_language">Choose Language</h3>
+        <p data-i18n="choose_language_sub">Select your preferred language for the portal</p>
+      </div>
+      <button class="lang-close-btn" id="closeLanguageModal">&times;</button>
+    </div>
+    <div class="lang-search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="languageSearch" placeholder="Search language..." data-i18n-placeholder="search_language">
+    </div>
+    <div class="lang-grid" id="languageGrid">
+      <button class="lang-option" data-lang="en">English</button>
+      <button class="lang-option" data-lang="hi">हिंदी</button>
+      <button class="lang-option" data-lang="mr">मराठी</button>
+      <button class="lang-option" data-lang="gu">ગુજરાતી</button>
+      <button class="lang-option" data-lang="bn">বাংলা</button>
+      <button class="lang-option" data-lang="ta">தமிழ்</button>
+      <button class="lang-option" data-lang="te">తెలుగు</button>
+      <button class="lang-option" data-lang="kn">ಕನ್ನಡ</button>
+      <button class="lang-option" data-lang="ml">മലയാളം</button>
+      <button class="lang-option" data-lang="pa">ਪੰਜਾਬੀ</button>
+      <button class="lang-option" data-lang="ur">اردو</button>
+      <button class="lang-option" data-lang="es">Español</button>
+      <button class="lang-option" data-lang="fr">Français</button>
+      <button class="lang-option" data-lang="de">Deutsch</button>
+      <button class="lang-option" data-lang="ar">العربية</button>
+      <button class="lang-option" data-lang="zh-CN">中文 (简体)</button>
+      <button class="lang-option" data-lang="ja">日本語</button>
+      <button class="lang-option" data-lang="ko">한국어</button>
+      <button class="lang-option" data-lang="ru">Русский</button>
+      <button class="lang-option" data-lang="pt">Português</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TTS FLOATING ACTION BUTTON
+═══════════════════════════════════════════════ -->
+<button id="ttsFab" onclick="openTtsPanel()" title="Listen to this scheme">
+  <span style="font-size:18px;">🔊</span> सुनें / Listen
+</button>
+
+<!-- ═══════════════════════════════════════════════
+     TTS AUDIO PANEL
+═══════════════════════════════════════════════ -->
+<div id="ttsPanel" class="tts-hidden">
+  <div class="tts-header">
+    <div class="tts-header-left">
+      <span class="tts-icon">🎧</span>
+      <div>
+        <div class="tts-header-title">Scheme Audio Guide</div>
+        <div class="tts-header-sub">योजना ऑडियो गाइड — Listen in your language</div>
+      </div>
+    </div>
+    <button class="tts-close-btn" onclick="closeTtsPanel()" title="Close">✕</button>
+  </div>
+  <div class="tts-body">
+    <div class="tts-lang-label">🌐 Choose Language / भाषा चुनें</div>
+    <select class="tts-lang-select" id="ttsLangSelect" onchange="onTtsLangChange()">
+      <optgroup label="🇮🇳 Compulsory">
+        <option value="en">🇬🇧 English</option>
+        <option value="hi">हिंदी — Hindi</option>
+      </optgroup>
+      <optgroup label="🇮🇳 State Languages (28 States + UTs)">
+        <option value="as">অসমীয়া — Assamese (Assam)</option>
+        <option value="bn">বাংলা — Bengali (West Bengal)</option>
+        <option value="bho">भोजपुरी — Bhojpuri (Bihar/UP)</option>
+        <option value="gu">ગુજરાતી — Gujarati (Gujarat)</option>
+        <option value="kn">ಕನ್ನಡ — Kannada (Karnataka)</option>
+        <option value="kok">कोंकणी — Konkani (Goa)</option>
+        <option value="mai">मैथिली — Maithili (Bihar)</option>
+        <option value="ml">മലയാളം — Malayalam (Kerala)</option>
+        <option value="mni">মৈতৈলোন্ — Meitei (Manipur)</option>
+        <option value="mr">मराठी — Marathi (Maharashtra)</option>
+        <option value="ne">नेपाली — Nepali (Sikkim)</option>
+        <option value="or">ଓଡ଼ିଆ — Odia (Odisha)</option>
+        <option value="pa">ਪੰਜਾਬੀ — Punjabi (Punjab)</option>
+        <option value="sa">संस्कृतम् — Sanskrit</option>
+        <option value="si">සිංහල — Sinhala (Sri Lanka Tamil speakers)</option>
+        <option value="ta">தமிழ் — Tamil (Tamil Nadu)</option>
+        <option value="te">తెలుగు — Telugu (Andhra/Telangana)</option>
+        <option value="ur">اردو — Urdu (J&K / UP)</option>
+        <option value="raj">राजस्थानी — Rajasthani (Rajasthan)</option>
+        <option value="doi">डोगरी — Dogri (Jammu)</option>
+        <option value="sat">ᱥᱟᱱᱛᱟᱲᱤ — Santali (Jharkhand)</option>
+        <option value="ks">كٲشُر — Kashmiri (Kashmir)</option>
+        <option value="sd">سنڌي — Sindhi</option>
+        <option value="brx">बड़ो — Bodo (Assam)</option>
+        <option value="lus">Mizo — Mizo (Mizoram)</option>
+        <option value="kha">Khasi — Khasi (Meghalaya)</option>
+        <option value="nag">Nagamese — Nagamese (Nagaland)</option>
+        <option value="awa">अवधी — Awadhi (UP)</option>
+        <option value="chhattisgarhi">छत्तीसगढ़ी — Chhattisgarhi</option>
+      </optgroup>
+    </select>
+
+    <div class="tts-progress-wrap">
+      <div class="tts-progress-bar" id="ttsProgressBar"></div>
+    </div>
+    <div class="tts-status" id="ttsStatus">Press ▶ to listen to the full scheme details</div>
+
+    <div class="tts-controls">
+      <button class="tts-btn tts-btn-sm" id="ttsRewindBtn" onclick="ttsRewind()" title="Restart" disabled>⏮</button>
+      <button class="tts-btn tts-btn-main" id="ttsPlayBtn" onclick="ttsTogglePlay()" title="Play/Pause">▶</button>
+      <button class="tts-btn tts-btn-sm" id="ttsStopBtn" onclick="ttsStop()" title="Stop" disabled>⏹</button>
+    </div>
+
+    <div class="tts-speed-row">
+      <span class="tts-speed-label">⚡ Speed:</span>
+      <div class="tts-speed-btns">
+        <button class="tts-speed-btn" onclick="setTtsSpeed(0.75)">0.75×</button>
+        <button class="tts-speed-btn active" onclick="setTtsSpeed(1)">1×</button>
+        <button class="tts-speed-btn" onclick="setTtsSpeed(1.25)">1.25×</button>
+        <button class="tts-speed-btn" onclick="setTtsSpeed(1.5)">1.5×</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+// ── Left nav active state ──
+function setActive(el) {
+  document.querySelectorAll('.left-nav a').forEach(a => a.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Scroll spy ──
+const sections = document.querySelectorAll('.section-anchor');
+const navLinks = document.querySelectorAll('.left-nav a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.id; });
+  navLinks.forEach(a => {
+    a.classList.remove('active');
+    if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+  });
+});
+
+// ── FAQ accordion ──
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-q.open').forEach(q => {
+    q.classList.remove('open');
+    q.nextElementSibling.classList.remove('show');
+  });
+  if (!isOpen) { el.classList.add('open'); ans.classList.add('show'); }
+}
+
+// ── Translation ──
+async function tr(text, lang) {
+  if (!text || lang === 'en') return text;
+  const cacheKey = 'tr_' + lang + '_' + btoa(unescape(encodeURIComponent(text))).substring(0, 40);
+  try { const c = sessionStorage.getItem(cacheKey); if (c) return c; } catch(e) {}
+  try {
+    const res = await fetch('/translate?tl=' + encodeURIComponent(lang) + '&q=' + encodeURIComponent(text));
+    const data = await res.json();
+    const t = data.t || text;
+    try { sessionStorage.setItem(cacheKey, t); } catch(e) {}
+    return t;
+  } catch(e) { return text; }
+}
+
+async function translateLines(ul, rawText, lang, numbered) {
+  if (!ul || !rawText) return;
+  const lines = rawText.split('\n').filter(l => l.trim());
+  ul.innerHTML = '';
+  let i = 1;
+  for (const line of lines) {
+    const li = document.createElement('li');
+    const translated = lang === 'en' ? line : await tr(line, lang);
+    if (numbered) {
+      li.innerHTML = '<span class="step-num">' + (i++) + '</span><span>' + translated + '</span>';
+    } else {
+      li.innerHTML = '<span>' + translated + '</span>';
+    }
+    ul.appendChild(li);
+  }
+}
+
+async function translateDetailPage(lang) {
+  const titleEl = document.querySelector('.scheme-title-el');
+  if (titleEl) {
+    titleEl.classList.add('translating');
+    titleEl.textContent = lang === 'en' ? titleEl.getAttribute('data-title') : await tr(titleEl.getAttribute('data-title'), lang);
+    titleEl.classList.remove('translating');
+  }
+  const descEl = document.querySelector('.scheme-desc-el');
+  if (descEl) {
+    descEl.classList.add('translating');
+    descEl.textContent = lang === 'en' ? descEl.getAttribute('data-desc') : await tr(descEl.getAttribute('data-desc'), lang);
+    descEl.classList.remove('translating');
+  }
+  const objEl  = document.querySelector('.scheme-objectives-el');  if (objEl)  await translateLines(objEl,  objEl.getAttribute('data-objectives'), lang, false);
+  const benEl  = document.querySelector('.scheme-benefits-el');    if (benEl)  await translateLines(benEl,  benEl.getAttribute('data-benefits'), lang, false);
+  const eligEl = document.querySelector('.scheme-eligibility-el'); if (eligEl) await translateLines(eligEl, eligEl.getAttribute('data-eligibility'), lang, false);
+  const exclEl = document.querySelector('.scheme-exclusions-el');  if (exclEl) await translateLines(exclEl, exclEl.getAttribute('data-exclusions'), lang, false);
+  const appEl  = document.querySelector('.scheme-appprocess-el');  if (appEl)  await translateLines(appEl,  appEl.getAttribute('data-appprocess'), lang, true);
+  const docEl  = document.querySelector('.scheme-documents-el');   if (docEl)  await translateLines(docEl,  docEl.getAttribute('data-documents'), lang, true);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const lang = localStorage.getItem('selectedLanguage') || 'en';
+  translateDetailPage(lang);
+});
+window.addEventListener('languageChanged', e => translateDetailPage(e.detail.language));
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TTS ENGINE — Web Speech API
+     Works on Chrome, Edge, Safari, Firefox (with voices)
+     Uses /tts-content/<id> to translate on server side,
+     then speaks with browser SpeechSynthesis API.
+     Falls back gracefully if API unavailable.
+═══════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  const SCHEME_ID = {{ scheme.id }};
+
+  // ── BCP-47 lang codes for Web Speech API ──
+  // Maps our select values → browser voice language tags
+  const VOICE_LANG = {
+    en:   'en-IN',  // English (India accent preferred)
+    hi:   'hi-IN',
+    as:   'as-IN',
+    bn:   'bn-IN',
+    bho:  'hi-IN',  // Bhojpuri — fallback to Hindi voice
+    gu:   'gu-IN',
+    kn:   'kn-IN',
+    kok:  'kok-IN',
+    mai:  'hi-IN',
+    ml:   'ml-IN',
+    mni:  'mni-IN',
+    mr:   'mr-IN',
+    ne:   'ne-NP',
+    or:   'or-IN',
+    pa:   'pa-IN',
+    sa:   'sa-IN',
+    si:   'si-LK',
+    ta:   'ta-IN',
+    te:   'te-IN',
+    ur:   'ur-IN',
+    raj:  'hi-IN',
+    doi:  'hi-IN',
+    sat:  'hi-IN',
+    ks:   'ur-IN',
+    sd:   'ur-IN',
+    brx:  'hi-IN',
+    lus:  'en-IN',
+    kha:  'en-IN',
+    nag:  'en-IN',
+    awa:  'hi-IN',
+    chhattisgarhi: 'hi-IN',
+  };
+
+  // ── State ──
+  let ttsText      = null;   // translated text (fetched once per lang)
+  let ttsLang      = 'en';
+  let ttsSpeed     = 1.0;
+  let utterance    = null;
+  let isPlaying    = false;
+  let isPaused     = false;
+  let isFetching   = false;
+
+  // For chunked speech (long texts)
+  let ttsChunks    = [];
+  let chunkIndex   = 0;
+
+  const synth      = window.speechSynthesis;
+  const hasSynth   = !!synth;
+
+  // ── DOM ──
+  const fab        = document.getElementById('ttsFab');
+  const panel      = document.getElementById('ttsPanel');
+  const playBtn    = document.getElementById('ttsPlayBtn');
+  const stopBtn    = document.getElementById('ttsStopBtn');
+  const rewindBtn  = document.getElementById('ttsRewindBtn');
+  const statusEl   = document.getElementById('ttsStatus');
+  const progressEl = document.getElementById('ttsProgressBar');
+  const langSel    = document.getElementById('ttsLangSelect');
+
+  // ── Open / Close ──
+  window.openTtsPanel = function() {
+    fab.classList.add('tts-fab-hidden');
+    panel.classList.remove('tts-hidden');
+  };
+  window.closeTtsPanel = function() {
+    ttsStop();
+    panel.classList.add('tts-hidden');
+    fab.classList.remove('tts-fab-hidden');
+  };
+
+  // ── Language changed ──
+  window.onTtsLangChange = function() {
+    ttsStop();
+    ttsText  = null;   // force re-fetch
+    ttsLang  = langSel.value;
+    setStatus('Press ▶ to listen in ' + langSel.options[langSel.selectedIndex].text.split('—')[0].trim(), '');
+    progressEl.style.width = '0%';
+  };
+
+  // ── Speed ──
+  window.setTtsSpeed = function(s) {
+    ttsSpeed = s;
+    document.querySelectorAll('.tts-speed-btn').forEach(b => {
+      b.classList.toggle('active', parseFloat(b.textContent) === s);
+    });
+    // If currently playing, restart chunk with new speed
+    if (isPlaying && !isPaused) {
+      const idx = chunkIndex;
+      ttsStop();
+      chunkIndex = Math.max(0, idx - 1);
+      speakChunk(chunkIndex);
+    }
+  };
+
+  // ── Controls ──
+  window.ttsTogglePlay = function() {
+    if (!hasSynth) {
+      setStatus('⚠️ Your browser does not support audio. Please use Chrome or Edge.', 'error');
+      return;
+    }
+    if (isPlaying && !isPaused) {
+      // Pause
+      synth.pause();
+      isPaused = true;
+      playBtn.textContent = '▶';
+      setStatus('Paused — press ▶ to resume', 'loading');
+    } else if (isPaused) {
+      // Resume
+      synth.resume();
+      isPaused = false;
+      playBtn.textContent = '⏸';
+      setStatus('Playing…', 'playing');
+    } else {
+      // Start fresh
+      startTts();
+    }
+  };
+
+  window.ttsStop = function() {
+    if (synth) synth.cancel();
+    isPlaying  = false;
+    isPaused   = false;
+    chunkIndex = 0;
+    playBtn.textContent = '▶';
+    playBtn.disabled    = false;
+    stopBtn.disabled    = true;
+    rewindBtn.disabled  = true;
+    progressEl.style.width = '0%';
+    if (!isFetching) setStatus('Stopped. Press ▶ to listen again.', '');
+  };
+
+  window.ttsRewind = function() {
+    ttsStop();
+    if (ttsText) {
+      chunkIndex = 0;
+      speakChunk(0);
+    }
+  };
+
+  // ── Fetch translated text then speak ──
+  async function startTts() {
+    if (isFetching) return;
+    ttsLang = langSel.value;
+
+    if (!ttsText) {
+      // Fetch from server
+      isFetching = true;
+      playBtn.disabled = true;
+      setStatus('⏳ Translating content, please wait…', 'loading');
+      try {
+        const res  = await fetch(`/tts-content/${SCHEME_ID}?lang=${encodeURIComponent(ttsLang)}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        ttsText = data.text;
+      } catch(e) {
+        setStatus('❌ Could not load content. Check connection.', 'error');
+        playBtn.disabled = false;
+        isFetching = false;
+        return;
+      }
+      isFetching = false;
+      playBtn.disabled = false;
+    }
+
+    // Chunk the text (Speech API can handle ~200 words reliably)
+    ttsChunks  = chunkText(ttsText, 220);
+    chunkIndex = 0;
+    speakChunk(0);
+  }
+
+  function speakChunk(idx) {
+    if (idx >= ttsChunks.length) {
+      // Done
+      isPlaying = false;
+      playBtn.textContent = '▶';
+      stopBtn.disabled    = true;
+      rewindBtn.disabled  = false;
+      progressEl.style.width = '100%';
+      setStatus('✅ Finished! Press ⏮ to listen again.', 'playing');
+      return;
+    }
+
+    const voiceLangTag = VOICE_LANG[ttsLang] || 'hi-IN';
+    utterance = new SpeechSynthesisUtterance(ttsChunks[idx]);
+    utterance.lang  = voiceLangTag;
+    utterance.rate  = ttsSpeed;
+    utterance.pitch = 1.0;
+
+    // Pick best matching voice
+    const voices = synth.getVoices();
+    const exact  = voices.find(v => v.lang === voiceLangTag);
+    const prefix = voices.find(v => v.lang.startsWith(voiceLangTag.split('-')[0]));
+    if (exact)        utterance.voice = exact;
+    else if (prefix)  utterance.voice = prefix;
+
+    utterance.onstart = () => {
+      isPlaying = true;
+      isPaused  = false;
+      playBtn.textContent = '⏸';
+      stopBtn.disabled    = false;
+      rewindBtn.disabled  = false;
+      const pct = Math.round(((idx) / ttsChunks.length) * 100);
+      progressEl.style.width = pct + '%';
+      setStatus(`🔊 Playing… (${idx + 1} / ${ttsChunks.length})`, 'playing');
+    };
+
+    utterance.onend = () => {
+      chunkIndex = idx + 1;
+      // Small delay to avoid Chrome's speech synthesis bug
+      setTimeout(() => speakChunk(chunkIndex), 80);
+    };
+
+    utterance.onerror = (e) => {
+      if (e.error === 'interrupted' || e.error === 'canceled') return;
+      setStatus('⚠️ Audio error: ' + e.error + '. Try a different language.', 'error');
+      isPlaying = false;
+      playBtn.textContent = '▶';
+      playBtn.disabled    = false;
+    };
+
+    synth.speak(utterance);
+  }
+
+  // Split text into word-count chunks
+  function chunkText(text, wordLimit) {
+    const words  = text.split(/\s+/);
+    const chunks = [];
+    for (let i = 0; i < words.length; i += wordLimit) {
+      chunks.push(words.slice(i, i + wordLimit).join(' '));
+    }
+    return chunks.length ? chunks : [text];
+  }
+
+  function setStatus(msg, type) {
+    statusEl.textContent = msg;
+    statusEl.className   = 'tts-status' + (type ? ' ' + type : '');
+  }
+
+  // ── Chrome requires voices loaded asynchronously ──
+  if (synth && synth.onvoiceschanged !== undefined) {
+    synth.onvoiceschanged = () => {};  // trigger voice list load
+  }
+
+  // ── No Speech API warning ──
+  if (!hasSynth) {
+    setStatus('⚠️ Audio not supported in this browser. Please use Chrome/Edge.', 'error');
+    playBtn.disabled = true;
+  }
+
+  // ── Sync TTS language with page language if user changes it ──
+  window.addEventListener('languageChanged', e => {
+    const pageLang = e.detail.language;
+    if (pageLang && langSel.querySelector(`option[value="${pageLang}"]`)) {
+      langSel.value = pageLang;
+      window.onTtsLangChange();
+    }
+  });
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — SarkariSahayata</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <style>
+    .stat-card { border-radius:16px; padding:24px; color:#fff; position:relative; overflow:hidden; }
+    .stat-card .big { font-size:42px; font-weight:800; }
+    .stat-card .lbl { font-size:13px; opacity:.85; }
+    .stat-card .icon { position:absolute; right:20px; top:50%; transform:translateY(-50%); font-size:52px; opacity:.15; }
+    .log-row td { font-size:13px; }
+    .sidebar-badge { font-size:10px; background:#22c55e; color:#fff; border-radius:10px; padding:2px 7px; margin-left:6px; }
+    .sidebar-role  { font-size:11px; color:#9ca3af; margin-top:4px; }
+    .active-link   { background:#1d4ed8 !important; color:#fff !important; border-radius:6px; }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+<div class="col-md-2 sticky-sidebar sticky-top" style="min-height:100vh;">
+  <div class="mb-3">
+    <h4 style="font-size:16px;">🏛️ SarkariSahayata</h4>
+    <div class="sidebar-role">👤 {{ admin_username }}
+      <span class="sidebar-badge">{{ admin_role }}</span>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.info_dashboard') }}" class="active-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+  <a href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-list-ul"></i> Manage Schemes</a>
+  <a href="{{ url_for('admin.view_user') }}"><i class="bi bi-people"></i> View Users</a>
+  <a href="{{ url_for('admin.activity_log') }}"><i class="bi bi-journal-text"></i> Activity Log</a>
+  <a href="{{ url_for('admin.export_schemes') }}" target="_blank"><i class="bi bi-download"></i> Export CSV</a>
+  <a href="{{ url_for('home.index') }}"><i class="bi bi-house"></i> Homepage</a>
+  <a href="{{ url_for('admin.admin_logout') }}" style="color:#f87171;margin-top:20px;border-top:1px solid #374151;padding-top:14px;">
+    <i class="bi bi-box-arrow-right"></i> Logout
+  </a>
+</div>
+
+<!-- MAIN -->
+<div class="col-md-10 dashboard-content">
+  <h2 class="page-title"><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+
+  <!-- STAT CARDS -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#1e3a8a,#1d4ed8);">
+        <div class="lbl">Total Registered Users</div>
+        <div class="big">{{ registrations }}</div>
+        <div class="icon"><i class="bi bi-people-fill"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#065f46,#059669);">
+        <div class="lbl">Users With Profile</div>
+        <div class="big">{{ info }}</div>
+        <div class="icon"><i class="bi bi-person-fill-check"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#7c2d12,#ea580c);">
+        <div class="lbl">Total Schemes</div>
+        <div class="big">{{ total_schemes }}</div>
+        <div class="icon"><i class="bi bi-collection-fill"></i></div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#4c1d95,#7c3aed);">
+        <div class="lbl">Categories</div>
+        <div class="big">6</div>
+        <div class="icon"><i class="bi bi-grid-fill"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="bi bi-gender-ambiguous"></i> Gender Distribution</h6>
+          <canvas id="genderChart" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart"></i> Schemes per Category</h6>
+          <canvas id="categoryChart" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="bi bi-diagram-3"></i> Caste Breakdown (Users)</h6>
+          <canvas id="casteChart" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3"><i class="bi bi-briefcase"></i> Top Occupations</h6>
+          {% if occupations %}
+            {% for occ in occupations %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small">{{ occ.occupation }}</span>
+              <span class="badge bg-secondary">{{ occ.c }}</span>
+            </div>
+            <div class="progress mb-2" style="height:6px;">
+              <div class="progress-bar bg-success"
+                   style="width:{{ (occ.c / (occupations[0].c or 1) * 100)|int }}%"></div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted small">No occupation data yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECENT ACTIVITY LOG -->
+  <div class="card shadow-sm border-0 mb-5">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0"><i class="bi bi-journal-text"></i> Recent Activity</h6>
+        <a href="{{ url_for('admin.activity_log') }}" class="btn btn-outline-primary btn-sm">View All</a>
+      </div>
+      {% if recent_logs %}
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr><th>Admin</th><th>Action</th><th>Detail</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+        {% for log in recent_logs %}
+          <tr class="log-row">
+            <td>{{ log.admin_name }}</td>
+            <td>
+              <span class="badge
+                {% if 'DELETE' in log.action %}bg-danger
+                {% elif 'ADD' in log.action or 'LOGIN' in log.action %}bg-success
+                {% elif 'EDIT' in log.action %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ log.action }}
+              </span>
+            </td>
+            <td>{{ log.detail }}</td>
+            <td>{{ log.created_at }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="text-muted small mb-0">No activity logged yet. Create the <code>admin_activity_log</code> table (see migration SQL).</p>
+      {% endif %}
+    </div>
+  </div>
+
+</div><!-- /col -->
+</div><!-- /row -->
+</div><!-- /container -->
+
+<script>
+// Gender Pie
+new Chart(document.getElementById('genderChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Male', 'Female'],
+    datasets: [{ data: {{ gender_data|tojson }}, backgroundColor: ['#1d4ed8','#db2777'], borderWidth:0 }]
+  },
+  options: { plugins: { legend: { position:'bottom' } }, cutout:'60%' }
+});
+
+// Category Bar
+new Chart(document.getElementById('categoryChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Education','Health','Agriculture','Employment','Housing','Women & Child'],
+    datasets: [{ label:'Schemes', data: {{ cat_list|tojson }},
+      backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#ec4899'],
+      borderRadius: 6 }]
+  },
+  options: { responsive:true, plugins:{ legend:{display:false} },
+    scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } } }
+});
+
+// Caste Pie
+new Chart(document.getElementById('casteChart'), {
+  type: 'pie',
+  data: {
+    labels: ['General','OBC','SC','ST','Other'],
+    datasets: [{ data: {{ caste_data|tojson }},
+      backgroundColor:['#6366f1','#f59e0b','#10b981','#ef4444','#8b5cf6'],
+      borderWidth:0 }]
+  },
+  options: { plugins:{ legend:{ position:'bottom' } } }
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

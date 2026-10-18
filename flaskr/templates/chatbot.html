@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SarkariSahayata AI</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+:root {
+  --gov-blue: #1e3a8a;
+  --gov-saffron: #f97316;
+  --gov-green: #15803d;
+  --light-bg: #f8fafc;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.chat-wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 16px 20px;
+  background: linear-gradient(90deg, var(--gov-blue), var(--gov-green));
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.chat-header-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.chat-header span {
+  font-size: 13px;
+  opacity: 0.9;
+  font-weight: 400;
+  display:block;
+}
+
+.chat-header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.chat-lang-btn{
+  border:none;
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  cursor:pointer;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 22px;
+  overflow-y: auto;
+  background: var(--light-bg);
+}
+
+.message {
+  max-width: 75%;
+  padding: 12px 15px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.user {
+  background: #e0f2fe;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.bot {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-bottom-left-radius: 4px;
+}
+
+.chat-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  position: relative;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+  outline: none;
+}
+
+.chat-footer input:focus {
+  border-color: var(--gov-blue);
+}
+
+button {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+#micBtn {
+  background: #e5e7eb;
+}
+
+#micBtn.listening {
+  background: var(--gov-saffron);
+  color: white;
+}
+
+#sendBtn {
+  background: var(--gov-green);
+  color: white;
+}
+
+#sendBtn:hover {
+  opacity: 0.9;
+}
+
+.suggestion-box {
+  position: absolute;
+  bottom: 60px;
+  left: 14px;
+  right: 14px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  z-index: 10;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.suggestion-item:hover {
+  background: #f3f4f6;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div>
+        <div data-i18n="chatbot_title">🏛️ SarkariSahayata AI</div>
+        <span data-i18n="chatbot_subtitle">Official Government Scheme Assistant</span>
+      </div>
+    </div>
+
+    <div class="chat-header-actions">
+      <button type="button" class="chat-lang-btn" id="openLanguageModal" title="Language">
+        <i class="bi bi-translate"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="chat-body" id="chatBox">
+    <div class="message bot" id="welcomeMessage">
+      <span data-i18n="chatbot_welcome">Welcome to SarkariSahayata AI 🇮🇳</span><br>
+      <span data-i18n="chatbot_welcome_desc">Ask me about government schemes, eligibility, or benefits.</span>
+    </div>
+  </div>
+
+  <div class="chat-footer">
+    <input id="userInput" placeholder="Type or speak your question…" data-i18n-placeholder="type_or_speak" autocomplete="off" />
+    <button id="micBtn" onclick="toggleMic()">🎤</button>
+    <button id="sendBtn" onclick="sendMessage()" data-i18n="send">Send</button>
+
+    <div id="suggestBox" class="suggestion-box"></div>
+  </div>
+
+</div>
+
+<div class="lang-modal-overlay" id="langModalOverlay">
+  <div class="lang-modal-box">
+    <div class="lang-modal-header">
+      <div>
+        <h3 data-i18n="choose_language">Choose Language</h3>
+        <p data-i18n="choose_language_sub">Select your preferred language for the portal</p>
+      </div>
+      <button class="lang-close-btn" id="closeLanguageModal">&times;</button>
+    </div>
+
+    <div class="lang-search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="languageSearch" placeholder="Search language..." data-i18n-placeholder="search_language">
+    </div>
+
+    <div class="lang-grid" id="languageGrid">
+      <button class="lang-option" data-lang="en">English</button>
+      <button class="lang-option" data-lang="hi">हिंदी</button>
+      <button class="lang-option" data-lang="mr">मराठी</button>
+      <button class="lang-option" data-lang="gu">ગુજરાતી</button>
+      <button class="lang-option" data-lang="bn">বাংলা</button>
+      <button class="lang-option" data-lang="ta">தமிழ்</button>
+      <button class="lang-option" data-lang="te">తెలుగు</button>
+      <button class="lang-option" data-lang="kn">ಕನ್ನಡ</button>
+      <button class="lang-option" data-lang="ml">മലയാളം</button>
+      <button class="lang-option" data-lang="pa">ਪੰਜਾਬੀ</button>
+      <button class="lang-option" data-lang="or">ଓଡ଼ିଆ</button>
+      <button class="lang-option" data-lang="as">অসমীয়া</button>
+      <button class="lang-option" data-lang="ur">اردو</button>
+      <button class="lang-option" data-lang="ne">नेपाली</button>
+      <button class="lang-option" data-lang="sa">संस्कृत</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+const chatBox = document.getElementById("chatBox");
+const userInput = document.getElementById("userInput");
+const suggestBox = document.getElementById("suggestBox");
+const micBtn = document.getElementById("micBtn");
+
+let recognition;
+let listening = false;
+
+const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+function currentLang() {
+  return localStorage.getItem("selectedLanguage") || "en";
+}
+
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.lang = "en-IN";
+  recognition.onresult = e => {
+    userInput.value = e.results[0][0].transcript;
+    triggerSuggestions();
+  };
+  recognition.onend = () => {
+    listening = false;
+    micBtn.classList.remove("listening");
+  };
+}
+
+function updateRecognitionLanguage() {
+  if (!recognition) return;
+
+  const map = {
+    en: "en-IN",
+    hi: "hi-IN",
+    mr: "mr-IN",
+    gu: "gu-IN",
+    bn: "bn-IN",
+    ta: "ta-IN",
+    te: "te-IN",
+    kn: "kn-IN",
+    ml: "ml-IN",
+    pa: "pa-IN",
+    ur: "ur-IN",
+    ne: "ne-NP",
+    or: "or-IN",
+    as: "as-IN",
+    sa: "hi-IN"
+  };
+
+  recognition.lang = map[currentLang()] || "en-IN";
+}
+
+function toggleMic() {
+  if (!recognition) {
+    const lang = currentLang();
+    const t = (translations[lang] || translations.en);
+    addMessage(t.listening_not_supported || "🎤 Voice input works best in Chrome or Edge.", "bot");
+    return;
+  }
+
+  updateRecognitionLanguage();
+
+  listening ? recognition.stop() : recognition.start();
+  listening = !listening;
+  micBtn.classList.toggle("listening");
+}
+
+function sendMessage() {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  addMessage(text, "user");
+  userInput.value = "";
+  suggestBox.style.display = "none";
+
+  fetch("/chatbot/api", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      message: text,
+      language: currentLang()
+    })
+  })
+  .then(r => r.json())
+  .then(d => addMessage(d.reply, "bot"));
+}
+
+function addMessage(text, type) {
+  const div = document.createElement("div");
+  div.className = `message ${type}`;
+  div.innerHTML = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+userInput.addEventListener("input", triggerSuggestions);
+
+function triggerSuggestions() {
+  const text = userInput.value.trim();
+
+  if (text === "") {
+    suggestBox.style.display = "none";
+    suggestBox.innerHTML = "";
+    return;
+  }
+
+  fetch("/chatbot/suggest", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      text: text,
+      language: currentLang()
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    suggestBox.innerHTML = "";
+
+    if (!data.suggestions || data.suggestions.length === 0) {
+      suggestBox.style.display = "none";
+      return;
+    }
+
+    data.suggestions.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "suggestion-item";
+      div.innerText = item;
+      div.onclick = () => {
+        userInput.value = item;
+        suggestBox.style.display = "none";
+      };
+      suggestBox.appendChild(div);
+    });
+
+    suggestBox.style.display = "block";
+  });
+}
+
+document.addEventListener("click", function(event) {
+  if (!event.target.closest(".chat-footer")) {
+    suggestBox.style.display = "none";
+  }
+});
+
+userInput.addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
+
+window.addEventListener("languageChanged", function () {
+  updateRecognitionLanguage();
+});
+</script>
+
+</body>
+</html>

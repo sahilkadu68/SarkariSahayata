@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activity Log — Admin</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <style>
+    .sidebar-badge { font-size:10px; background:#22c55e; color:#fff; border-radius:10px; padding:2px 7px; margin-left:6px; }
+    .sidebar-role  { font-size:11px; color:#9ca3af; margin-top:4px; }
+    .active-link   { background:#1d4ed8 !important; color:#fff !important; border-radius:6px; }
+    .log-row td    { font-size:13px; }
+    .flash-warning { background:#fef9c3; border:1px solid #fde68a; color:#92400e; border-radius:8px; padding:10px 16px; margin-bottom:16px; }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container-fluid">
+<div class="row">
+
+<!-- SIDEBAR -->
+<div class="col-md-2 sticky-sidebar sticky-top" style="min-height:100vh;">
+  <div class="mb-3">
+    <h4 style="font-size:16px;">🏛️ SarkariSahayata</h4>
+    <div class="sidebar-role">👤 {{ admin_username }}
+      <span class="sidebar-badge">{{ admin_role }}</span>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.info_dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+  <a href="{{ url_for('admin.admin_dashboard') }}"><i class="bi bi-list-ul"></i> Manage Schemes</a>
+  <a href="{{ url_for('admin.view_user') }}"><i class="bi bi-people"></i> View Users</a>
+  <a href="{{ url_for('admin.activity_log') }}" class="active-link"><i class="bi bi-journal-text"></i> Activity Log</a>
+  <a href="{{ url_for('admin.export_schemes') }}" target="_blank"><i class="bi bi-download"></i> Export CSV</a>
+  <a href="{{ url_for('home.index') }}"><i class="bi bi-house"></i> Homepage</a>
+  <a href="{{ url_for('admin.admin_logout') }}" style="color:#f87171;margin-top:20px;border-top:1px solid #374151;padding-top:14px;">
+    <i class="bi bi-box-arrow-right"></i> Logout
+  </a>
+</div>
+
+<!-- MAIN -->
+<div class="col-md-10 dashboard-content">
+  <h2 class="page-title"><i class="bi bi-journal-text"></i> Admin Activity Log</h2>
+  <p class="text-muted mb-4">Last 100 admin actions are shown below.</p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      <div class="flash-{{ cat }}">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th><th>Admin</th><th>Action</th><th>Detail</th><th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for log in logs %}
+            <tr class="log-row">
+              <td class="text-muted">{{ loop.index }}</td>
+              <td><i class="bi bi-person-fill text-secondary me-1"></i>{{ log.admin_name }}</td>
+              <td>
+                <span class="badge
+                  {% if 'DELETE' in log.action %}bg-danger
+                  {% elif 'ADD' in log.action %}bg-success
+                  {% elif 'LOGIN' in log.action %}bg-primary
+                  {% elif 'LOGOUT' in log.action %}bg-secondary
+                  {% elif 'EDIT' in log.action %}bg-warning text-dark
+                  {% elif 'EXPORT' in log.action %}bg-info text-dark
+                  {% else %}bg-secondary{% endif %}">
+                  {{ log.action }}
+                </span>
+              </td>
+              <td>{{ log.detail }}</td>
+              <td class="text-muted">{{ log.created_at }}</td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-5">
+                <i class="bi bi-journal-x" style="font-size:32px;"></i>
+                <div class="mt-2">No activity logs yet.</div>
+                <div class="small mt-1">Make sure to create the <code>admin_activity_log</code> table.</div>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SarkariSahayata — Smart Government Schemes Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Hind:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home_new.css') }}">
+</head>
+<body class="home-body">
+
+<div class="tricolor-strip">
+  <div class="tc-saffron"></div>
+  <div class="tc-white"></div>
+  <div class="tc-green"></div>
+</div>
+
+<div class="gov-topbar">
+  <div class="gov-topbar-inner">
+    <a href="{{ url_for('home.index') }}" class="gov-brand-wrap">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" class="gov-logo" alt="Logo">
+      <div class="gov-brand-text">
+        <span class="gov-title-en" data-i18n="site_title">SarkariSahayata</span>
+        <span class="gov-title-hi">सरकारी सहायता</span>
+        <span class="gov-subtitle">Smart Government Schemes Portal</span>
+      </div>
+    </a>
+    <div class="gov-header-right">
+      <button type="button" class="lang-trigger-btn" id="openLanguageModal">
+        <i class="bi bi-translate"></i>
+        <span data-i18n="choose_language">Choose Language</span>
+      </button>
+      {% if g.user %}
+        <span class="gov-welcome"><i class="bi bi-person-circle"></i> {{ g.user['username'] }}</span>
+        <a class="gov-btn gov-btn-outline" href="{{ url_for('auth.logout') }}" data-i18n="logout">Logout</a>
+      {% else %}
+        <a class="gov-btn gov-btn-outline" href="{{ url_for('auth.login') }}" data-i18n="login">Login</a>
+        <a class="gov-btn gov-btn-primary" href="{{ url_for('auth.register') }}" data-i18n="register">Register</a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<nav class="gov-navbar">
+  <div class="gov-navbar-inner">
+    <a href="{{ url_for('home.index') }}" class="gov-nav-link active" data-i18n="nav_home"><i class="bi bi-house-fill"></i> Home</a>
+    <a href="#categories" class="gov-nav-link" data-i18n="nav_categories"><i class="bi bi-grid-3x3-gap-fill"></i> Categories</a>
+    <a href="#quick" class="gov-nav-link" data-i18n="nav_services"><i class="bi bi-lightning-fill"></i> Services</a>
+    <a href="{{ url_for('chatbot.chatbot_page') }}" class="gov-nav-link" data-i18n="nav_ai"><i class="bi bi-robot"></i> AI Assistant</a>
+    <a href="#contact" class="gov-nav-link" data-i18n="nav_contact"><i class="bi bi-telephone-fill"></i> Contact</a>
+    {% if g.user['user_type'] == 'master' or g.user['user_type'] == 'admin' %}
+      <a href="{{ url_for('admin.admin_dashboard') }}" class="gov-nav-link gov-nav-admin" data-i18n="nav_admin"><i class="bi bi-shield-lock-fill"></i> Admin</a>
+    {% endif %}
+  </div>
+</nav>
+
+<section class="hero-india">
+  <div class="hero-india-inner">
+    <div class="hero-badge">
+      <span class="badge-flag">🇮🇳</span>
+      <span>Government of India Initiative</span>
+    </div>
+    <h1 class="hero-heading">
+      <span class="hero-line1" data-i18n="hero_title_line1">One Platform. Every Government Scheme.</span>
+      <span class="hero-line2" data-i18n="hero_title_line2">Personalized for You.</span>
+    </h1>
+    <p class="hero-desc" data-i18n="hero_desc">Discover, check eligibility, and apply for government benefits easily in your language. Serving 140 crore Indians.</p>
+    <div class="hero-cta-row">
+      {% if g.user %}
+        <a href="{{ url_for('home.eligibility') }}" class="cta-btn cta-primary" data-i18n="check_eligibility"><i class="bi bi-check2-circle"></i> Check Eligibility</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="cta-btn cta-primary" data-i18n="sign_in_to_check"><i class="bi bi-box-arrow-in-right"></i> Sign In to Check</a>
+      {% endif %}
+      <a href="#categories" class="cta-btn cta-secondary" data-i18n="explore_schemes"><i class="bi bi-compass"></i> Explore Schemes</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-pill"><span class="stat-num">200+</span><span class="stat-label">Schemes</span></div>
+      <div class="stat-pill"><span class="stat-num">6</span><span class="stat-label">Categories</span></div>
+      <div class="stat-pill"><span class="stat-num">15+</span><span class="stat-label">Languages</span></div>
+      <div class="stat-pill"><span class="stat-num">140Cr+</span><span class="stat-label">Citizens</span></div>
+    </div>
+  </div>
+  <div class="hero-wheel-wrap" aria-hidden="true">
+    <div class="hero-wheel"></div>
+  </div>
+</section>
+
+<section class="hiw-section">
+  <div class="section-header">
+    <div class="section-eyebrow">Simple Process</div>
+    <h2 data-i18n="how_it_works">How It Works</h2>
+    <p>Access government benefits in 4 easy steps</p>
+  </div>
+  <div class="hiw-steps">
+    <div class="hiw-step">
+      <div class="step-num">01</div>
+      <div class="step-icon-wrap step-blue"><i class="bi bi-person-plus-fill"></i></div>
+      <h4 data-i18n="register">Register</h4>
+      <p>Create your account with basic details in minutes</p>
+    </div>
+    <div class="hiw-connector"><i class="bi bi-arrow-right"></i></div>
+    <div class="hiw-step">
+      <div class="step-num">02</div>
+      <div class="step-icon-wrap step-orange"><i class="bi bi-search"></i></div>
+      <h4 data-i18n="check_eligibility">Check Eligibility</h4>
+      <p>Answer simple questions about yourself</p>
+    </div>
+    <div class="hiw-connector"><i class="bi bi-arrow-right"></i></div>
+    <div class="hiw-step">
+      <div class="step-num">03</div>
+      <div class="step-icon-wrap step-green"><i class="bi bi-collection-fill"></i></div>
+      <h4 data-i18n="discover_schemes">Discover Schemes</h4>
+      <p>Get personalized scheme recommendations</p>
+    </div>
+    <div class="hiw-connector"><i class="bi bi-arrow-right"></i></div>
+    <div class="hiw-step">
+      <div class="step-num">04</div>
+      <div class="step-icon-wrap step-purple"><i class="bi bi-clipboard-check-fill"></i></div>
+      <h4 data-i18n="apply_track">Apply &amp; Track</h4>
+      <p>Apply online and track your application status</p>
+    </div>
+  </div>
+</section>
+
+<section id="categories" class="categories-section">
+  <div class="tricolor-divider"></div>
+  <div class="section-header light">
+    <div class="section-eyebrow">Explore</div>
+    <h2 data-i18n="explore_by_category">Explore by Category</h2>
+    <p data-i18n="find_schemes_tailored">Find schemes tailored to your needs across various sectors</p>
+  </div>
+  <div class="cat-grid">
+    <a class="cat-card cat-agri" href="{{ url_for('categories.show_category', category_name='Agriculture') }}">
+      <div class="cat-icon-wrap">🌾</div>
+      <div class="cat-label" data-i18n="cat_agriculture">Agriculture</div>
+      <div class="cat-sub">45 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+    <a class="cat-card cat-edu" href="{{ url_for('categories.show_category', category_name='Education') }}">
+      <div class="cat-icon-wrap">🎓</div>
+      <div class="cat-label" data-i18n="cat_education">Education</div>
+      <div class="cat-sub">38 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+    <a class="cat-card cat-women" href="{{ url_for('categories.show_category', category_name='Women and Child') }}">
+      <div class="cat-icon-wrap">👩‍👧</div>
+      <div class="cat-label" data-i18n="cat_women_child">Women &amp; Child</div>
+      <div class="cat-sub">32 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+    <a class="cat-card cat-health" href="{{ url_for('categories.show_category', category_name='Health') }}">
+      <div class="cat-icon-wrap">❤️</div>
+      <div class="cat-label" data-i18n="cat_health">Health</div>
+      <div class="cat-sub">28 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+    <a class="cat-card cat-housing" href="{{ url_for('categories.show_category', category_name='Housing') }}">
+      <div class="cat-icon-wrap">🏠</div>
+      <div class="cat-label" data-i18n="cat_housing">Housing</div>
+      <div class="cat-sub">25 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+    <a class="cat-card cat-skills" href="{{ url_for('categories.show_category', category_name='Skills and Employment') }}">
+      <div class="cat-icon-wrap">🛠️</div>
+      <div class="cat-label" data-i18n="cat_skills">Skills &amp; Employment</div>
+      <div class="cat-sub">42 schemes available</div>
+      <div class="cat-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+    </a>
+  </div>
+</section>
+
+<div class="schemes-marquee-wrap">
+  <div class="marquee-label">Popular Schemes:</div>
+  <div class="marquee-track">
+    <div class="marquee-inner">
+      <span class="mq-item">🌾 PM-KISAN &mdash; ₹6000/year</span>
+      <span class="mq-item">❤️ Ayushman Bharat &mdash; ₹5 lakh cover</span>
+      <span class="mq-item">🏠 PM Awas Yojana &mdash; ₹2.67 lakh subsidy</span>
+      <span class="mq-item">🎓 Mid-Day Meal &mdash; Free nutritious meals</span>
+      <span class="mq-item">🛠️ Skill India &mdash; Free certification</span>
+      <span class="mq-item">👩‍👧 Beti Bachao Beti Padhao</span>
+      <span class="mq-item">🌾 PM-KISAN &mdash; ₹6000/year</span>
+      <span class="mq-item">❤️ Ayushman Bharat &mdash; ₹5 lakh cover</span>
+      <span class="mq-item">🏠 PM Awas Yojana &mdash; ₹2.67 lakh subsidy</span>
+      <span class="mq-item">🎓 Mid-Day Meal &mdash; Free nutritious meals</span>
+      <span class="mq-item">🛠️ Skill India &mdash; Free certification</span>
+      <span class="mq-item">👩‍👧 Beti Bachao Beti Padhao</span>
+    </div>
+  </div>
+</div>
+
+<section id="quick" class="quick-section">
+  <div class="section-header">
+    <div class="section-eyebrow">Instant Help</div>
+    <h2 data-i18n="quick_access_services">Quick Access Services</h2>
+  </div>
+  <div class="quick-grid">
+    <div class="quick-card qc-eligibility">
+      <div class="qc-icon"><i class="bi bi-patch-check-fill"></i></div>
+      <h4 data-i18n="eligibility_check">Eligibility Check</h4>
+      <p>Quickly find which schemes you qualify for</p>
+      <a class="qc-btn" href="{{ url_for('home.eligibility') }}" data-i18n="start_arrow">Start Now →</a>
+    </div>
+    <div class="quick-card qc-ai">
+      <div class="qc-icon"><i class="bi bi-robot"></i></div>
+      <h4 data-i18n="ai_assistant">AI Assistant</h4>
+      <p>Chat in your native language for instant help</p>
+      <a class="qc-btn" href="{{ url_for('chatbot.chatbot_page') }}" data-i18n="chat_arrow">Chat Now →</a>
+    </div>
+    <div class="quick-card qc-status">
+      <div class="qc-icon"><i class="bi bi-card-checklist"></i></div>
+      <h4 data-i18n="application_status">Application Status</h4>
+      <p>Track your application progress in real-time</p>
+      <span class="qc-coming-soon" data-i18n="coming_soon">Coming Soon</span>
+    </div>
+  </div>
+</section>
+
+<section class="cta-india">
+  <div class="cta-india-inner">
+    <h2 data-i18n="cta_title">Ready to Explore Government Benefits?</h2>
+    <p data-i18n="cta_desc">Join millions of Indians who have already benefited from government schemes.</p>
+    <div class="cta-btn-row">
+      <a href="{{ url_for('auth.register') }}" class="cta-btn cta-primary" data-i18n="register_now"><i class="bi bi-person-plus-fill"></i> Register Now</a>
+      <a href="#categories" class="cta-btn cta-outline-white"><i class="bi bi-grid-3x3-gap-fill"></i> Browse All Schemes</a>
+    </div>
+  </div>
+</section>
+
+<button id="chat-btn" title="Open AI Assistant">💬</button>
+<iframe id="chat-iframe" src="{{ url_for('chatbot.chatbot_page') }}" title="Chatbot"></iframe>
+
+<div class="lang-modal-overlay" id="langModalOverlay">
+  <div class="lang-modal-box">
+    <div class="lang-modal-header">
+      <div>
+        <h3 data-i18n="choose_language">Choose Language</h3>
+        <p data-i18n="choose_language_sub">Select your preferred language for the portal</p>
+      </div>
+      <button class="lang-close-btn" id="closeLanguageModal">&times;</button>
+    </div>
+    <div class="lang-search-wrap">
+      <i class="bi bi-search"></i>
+      <input type="text" id="languageSearch" placeholder="Search language..." data-i18n-placeholder="search_language">
+    </div>
+    <div class="lang-grid" id="languageGrid">
+      <button class="lang-option" data-lang="en">English</button>
+      <button class="lang-option" data-lang="hi">हिंदी</button>
+      <button class="lang-option" data-lang="mr">मराठी</button>
+      <button class="lang-option" data-lang="gu">ગુજરાતી</button>
+      <button class="lang-option" data-lang="bn">বাংলা</button>
+      <button class="lang-option" data-lang="ta">தமிழ்</button>
+      <button class="lang-option" data-lang="te">తెలుగు</button>
+      <button class="lang-option" data-lang="kn">ಕನ್ನಡ</button>
+      <button class="lang-option" data-lang="ml">മലയാളം</button>
+      <button class="lang-option" data-lang="pa">ਪੰਜਾਬੀ</button>
+      <button class="lang-option" data-lang="or">ଓଡ଼ିଆ</button>
+      <button class="lang-option" data-lang="as">অসমীয়া</button>
+      <button class="lang-option" data-lang="ur">اردو</button>
+      <button class="lang-option" data-lang="ne">नेपाली</button>
+      <button class="lang-option" data-lang="sa">संस्कृत</button>
+      <button class="lang-option" data-lang="zh-CN">中文 (简体)</button>
+      <button class="lang-option" data-lang="zh-TW">中文 (繁體)</button>
+      <button class="lang-option" data-lang="es">Español</button>
+      <button class="lang-option" data-lang="fr">Français</button>
+      <button class="lang-option" data-lang="de">Deutsch</button>
+      <button class="lang-option" data-lang="pt">Português</button>
+      <button class="lang-option" data-lang="ru">Русский</button>
+      <button class="lang-option" data-lang="ar">العربية</button>
+      <button class="lang-option" data-lang="ja">日本語</button>
+      <button class="lang-option" data-lang="ko">한국어</button>
+      <button class="lang-option" data-lang="it">Italiano</button>
+      <button class="lang-option" data-lang="tr">Türkçe</button>
+      <button class="lang-option" data-lang="vi">Tiếng Việt</button>
+      <button class="lang-option" data-lang="th">ภาษาไทย</button>
+      <button class="lang-option" data-lang="id">Bahasa Indonesia</button>
+      <button class="lang-option" data-lang="ms">Bahasa Melayu</button>
+      <button class="lang-option" data-lang="fa">فارسی</button>
+      <button class="lang-option" data-lang="pl">Polski</button>
+      <button class="lang-option" data-lang="uk">Українська</button>
+      <button class="lang-option" data-lang="nl">Nederlands</button>
+      <button class="lang-option" data-lang="sv">Svenska</button>
+      <button class="lang-option" data-lang="no">Norsk</button>
+      <button class="lang-option" data-lang="da">Dansk</button>
+      <button class="lang-option" data-lang="fi">Suomi</button>
+      <button class="lang-option" data-lang="ro">Română</button>
+      <button class="lang-option" data-lang="hu">Magyar</button>
+      <button class="lang-option" data-lang="cs">Čeština</button>
+      <button class="lang-option" data-lang="el">Ελληνικά</button>
+      <button class="lang-option" data-lang="he">עברית</button>
+      <button class="lang-option" data-lang="sw">Kiswahili</button>
+      <button class="lang-option" data-lang="am">አማርኛ</button>
+      <button class="lang-option" data-lang="ha">Hausa</button>
+      <button class="lang-option" data-lang="yo">Yorùbá</button>
+      <button class="lang-option" data-lang="ig">Igbo</button>
+      <button class="lang-option" data-lang="af">Afrikaans</button>
+      <button class="lang-option" data-lang="az">Azərbaycan</button>
+      <button class="lang-option" data-lang="kk">Қазақша</button>
+      <button class="lang-option" data-lang="uz">O'zbek</button>
+      <button class="lang-option" data-lang="ky">Кыргызча</button>
+      <button class="lang-option" data-lang="tg">Тоҷикӣ</button>
+      <button class="lang-option" data-lang="my">မြန်မာဘာသာ</button>
+      <button class="lang-option" data-lang="km">ភាសាខ្មែរ</button>
+      <button class="lang-option" data-lang="lo">ພາສາລາວ</button>
+      <button class="lang-option" data-lang="si">සිංහල</button>
+      <button class="lang-option" data-lang="mn">Монгол</button>
+      <button class="lang-option" data-lang="ka">ქართული</button>
+    </div>
+  </div>
+</div>
+
+<footer id="contact" class="footer-india">
+  <div class="footer-inner">
+    <div class="footer-brand-col">
+      <div class="footer-brand">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" class="footer-logo" alt="Logo">
+        <div>
+          <div class="footer-brand-name">SarkariSahayata</div>
+          <div class="footer-brand-sub">सरकारी सहायता</div>
+        </div>
+      </div>
+      <p class="footer-tagline">Empowering citizens with easy access to government schemes and benefits. One platform for all your needs.</p>
+      <div class="footer-trust-badges">
+        <span class="trust-badge"><i class="bi bi-shield-check"></i> Govt Verified</span>
+        <span class="trust-badge"><i class="bi bi-lock-fill"></i> Data Safe</span>
+      </div>
+    </div>
+    <div class="footer-links-col">
+      <h6>Quick Links</h6>
+      <a href="{{ url_for('home.index') }}">Home</a>
+      <a href="#categories">Categories</a>
+      <a href="{{ url_for('home.eligibility') }}">Eligibility Check</a>
+      <a href="{{ url_for('chatbot.chatbot_page') }}">AI Assistant</a>
+    </div>
+    <div class="footer-links-col">
+      <h6>Popular Schemes</h6>
+      <a href="#">PM-KISAN</a>
+      <a href="#">Ayushman Bharat</a>
+      <a href="#">PM Awas Yojana</a>
+      <a href="#">Skill India</a>
+    </div>
+    <div class="footer-contact-col">
+      <h6>Contact Us</h6>
+      <div class="footer-contact-item"><i class="bi bi-envelope-fill"></i><span>help@sarkarisahayata.gov.in</span></div>
+      <div class="footer-contact-item"><i class="bi bi-telephone-fill"></i><span>1800-111-999 (Toll Free)</span></div>
+      <div class="footer-contact-item"><i class="bi bi-geo-alt-fill"></i><span>Ministry of Electronics &amp; IT, New Delhi</span></div>
+      <div style="margin-top:14px">
+        <a href="{{ url_for('admin.admin_login') }}" class="footer-admin-link" data-i18n="admin_login"><i class="bi bi-shield-lock"></i> Admin Portal</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 SarkariSahayata. All rights reserved. | Government of India Initiative</span>
+    <span class="footer-disclaimer">Disclaimer: Please verify eligibility details from official government sources before applying.</span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+  const btn = document.getElementById("chat-btn");
+  const iframe = document.getElementById("chat-iframe");
+  btn.addEventListener("click", () => {
+    iframe.style.display = iframe.style.display === "none" || iframe.style.display === "" ? "block" : "none";
+  });
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.hiw-step, .cat-card, .quick-card').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

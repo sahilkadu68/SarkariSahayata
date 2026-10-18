@@ -1,0 +1,17 @@
+[
+  {
+    "question": "What documents are required for PM Kisan?",
+    "keywords": ["pm kisan", "documents", "kisan"],
+    "answer": "Documents required:\n• Aadhar Card\n• Land ownership proof\n• Bank account details"
+  },
+  {
+    "question": "What is Ayushman Bharat?",
+    "keywords": ["ayushman", "health", "medical"],
+    "answer": "Ayushman Bharat provides health insurance coverage up to ₹5 lakh per family per year."
+  },
+  {
+    "question": "Women scholarship schemes",
+    "keywords": ["women", "scholarship", "girls"],
+    "answer": "Popular schemes:\n• AICTE Pragati\n• Beti Bachao Beti Padhao\n• Sukanya Samriddhi Yojana"
+  }
+]

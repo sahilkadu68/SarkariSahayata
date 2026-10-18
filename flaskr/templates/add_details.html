@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Profile — SarkariSahayata</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --saffron: #FF9933;
+      --india-blue: #1e3a8a;
+      --india-green: #138808;
+      --navy: #0f1f5c;
+      --sky: #dbeafe;
+      --mint: #d1fae5;
+      --amber: #fef3c7;
+      --rose: #fee2e2;
+      --slate: #f8fafc;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow-md: 0 8px 32px rgba(15,31,92,.13);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: #f1f5fb; color: var(--text); min-height: 100vh; }
+
+    .gov-topbar { height: 5px; background: linear-gradient(90deg, #FF9933 0% 33%, #fff 33% 67%, #138808 67% 100%); }
+
+    /* Header */
+    .page-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--india-blue) 60%, #1d4ed8 100%);
+      padding: 28px 0 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .page-header::before {
+      content:'';position:absolute;inset:0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    .page-header-inner { max-width: 700px; margin: 0 auto; padding: 0 20px; position: relative; }
+    .page-header h1 { font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .page-header p  { color: rgba(255,255,255,.65); font-size: 14px; }
+
+    /* Stepper */
+    .stepper-wrap { max-width: 700px; margin: 0 auto; padding: 0 20px; }
+    .stepper { display: flex; align-items: center; margin: -16px 0 0; position: relative; z-index: 1; }
+    .step-item { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .step-item:not(:last-child)::after {
+      content: ''; position: absolute; top: 18px; left: 50%; width: 100%; height: 3px;
+      background: rgba(255,255,255,.2); z-index: 0;
+    }
+    .step-item.done:not(:last-child)::after { background: var(--india-green); }
+    .step-circle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.15); border: 2.5px solid rgba(255,255,255,.3);
+      color: rgba(255,255,255,.6); display: flex; align-items: center; justify-content: center;
+      font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; position: relative; z-index: 1;
+      transition: all .3s;
+    }
+    .step-item.active .step-circle { background: #fff; border-color: #fff; color: var(--india-blue); box-shadow: 0 0 0 6px rgba(255,255,255,.2); }
+    .step-item.done  .step-circle  { background: var(--india-green); border-color: var(--india-green); color: #fff; }
+    .step-label { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.5); margin-top: 6px; text-align: center; }
+    .step-item.active .step-label { color: rgba(255,255,255,.9); }
+    .step-item.done   .step-label { color: rgba(255,255,255,.7); }
+
+    /* Main card */
+    .main-wrap { max-width: 700px; margin: 28px auto 48px; padding: 0 16px; }
+    .form-card  { background: #fff; border-radius: 20px; box-shadow: var(--shadow-md); overflow: hidden; }
+
+    /* Step panels */
+    .step-panel { display: none; padding: 36px 40px; }
+    .step-panel.active { display: block; animation: fadeIn .35s ease; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .panel-title { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; }
+    .panel-sub   { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+
+    /* Fields */
+    .field-row          { display: grid; gap: 18px; margin-bottom: 18px; }
+    .field-row.cols-2   { grid-template-columns: 1fr 1fr; }
+    .field-group        { display: flex; flex-direction: column; gap: 6px; }
+    .field-label        { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    .field-label .req   { color: #ef4444; margin-left: 2px; }
+    .field-input {
+      padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--text); background: #fff;
+      transition: border-color .2s, box-shadow .2s; outline: none; width: 100%;
+    }
+    .field-input:focus   { border-color: var(--india-blue); box-shadow: 0 0 0 3px rgba(30,58,138,.08); }
+    .field-input.error   { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.08); }
+    .field-input.success { border-color: var(--india-green); box-shadow: 0 0 0 3px rgba(19,136,8,.08); }
+
+    /* DOB */
+    .dob-wrap { position: relative; }
+    .dob-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; font-size: 16px; }
+    input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0; width: 30px; cursor: pointer; position: absolute; right: 0; }
+    .dob-hint  { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .age-badge { display:inline-block; background: var(--sky); color: var(--india-blue); border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 700; margin-top: 4px; }
+
+    /* Income */
+    .income-display { background: var(--sky); border-radius: 10px; padding: 10px 14px; font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 800; color: var(--india-blue); text-align: center; margin-bottom: 10px; }
+    input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--india-blue) 0%, var(--border) 0%); outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--india-blue); border: 3px solid #fff; box-shadow: 0 2px 8px rgba(30,58,138,.3); cursor: pointer; }
+
+    /* Doc type cards */
+    .doc-type-row { display: flex; gap: 12px; margin-bottom: 20px; }
+    .doc-type-card { flex: 1; border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .2s; text-align: center; position: relative; }
+    .doc-type-card:hover, .doc-type-card.selected { border-color: var(--india-blue); background: var(--sky); }
+    .doc-type-card input[type="radio"] { display: none; }
+    .doc-icon { font-size: 28px; margin-bottom: 6px; }
+    .doc-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+    .doc-sub  { font-size: 11px; color: var(--muted); }
+    .check-badge { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; background: var(--india-blue); border-radius: 50%; color: #fff; font-size: 11px; display: none; align-items: center; justify-content: center; }
+    .doc-type-card.selected .check-badge { display: flex; }
+
+    /* Upload zone */
+    .upload-zone { border: 2px dashed var(--border); border-radius: 14px; padding: 32px 20px; text-align: center; cursor: pointer; transition: all .2s; position: relative; background: #fafbff; }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--india-blue); background: var(--sky); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .upload-icon { font-size: 40px; color: var(--india-blue); opacity: .4; margin-bottom: 12px; }
+    .upload-text { font-size: 14px; font-weight: 600; color: var(--navy); }
+    .upload-sub  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* Preview */
+    #docPreviewWrap { margin-top: 16px; display: none; }
+    #docPreviewWrap img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border); }
+    .preview-name { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; color: var(--text); font-weight: 600; }
+    .preview-remove { margin-left: auto; color: #ef4444; cursor: pointer; font-size: 18px; background: none; border: none; padding: 0; }
+
+    /* Verify badge */
+    .verify-badge { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-top: 14px; }
+    .verify-badge.pending  { background: var(--amber); color: #92400e; }
+    .verify-badge.success  { background: var(--mint);  color: #065f46; }
+    .verify-badge.fail     { background: var(--rose);  color: #991b1b; }
+
+    /* ID fields */
+    .id-field-wrap { position: relative; }
+    .id-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--muted); }
+    .id-field-wrap input { padding-left: 36px; letter-spacing: .5px; font-weight: 600; }
+
+    /* Nav */
+    .step-nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px 28px; border-top: 1px solid var(--border); background: var(--slate); }
+    .btn-back { background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 22px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .2s; }
+    .btn-back:hover { border-color: var(--india-blue); color: var(--india-blue); }
+    .btn-next { background: linear-gradient(135deg, var(--navy), var(--india-blue)); border: none; border-radius: 10px; padding: 11px 28px; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(15,31,92,.25); }
+    .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(15,31,92,.35); }
+    .btn-submit-main { background: linear-gradient(135deg, #138808, #16a34a); box-shadow: 0 4px 14px rgba(19,136,8,.3); }
+
+    /* Progress dots */
+    .progress-dots { display: flex; gap: 6px; align-items: center; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all .3s; }
+    .dot.active { background: var(--india-blue); width: 22px; border-radius: 4px; }
+    .dot.done   { background: var(--india-green); }
+
+    /* Flash */
+    .flash-wrap  { max-width: 700px; margin: 20px auto 0; padding: 0 16px; }
+    .flash-alert { padding: 14px 18px; border-radius: 12px; font-size: 14px; font-weight: 600; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .flash-success { background: var(--mint); color: #065f46; border: 1px solid #a7f3d0; }
+    .flash-warn    { background: var(--amber); color: #78350f; border: 1px solid #fcd34d; }
+
+    @media (max-width: 600px) {
+      .step-panel { padding: 24px 20px; }
+      .step-nav   { padding: 16px 20px 20px; }
+      .field-row.cols-2 { grid-template-columns: 1fr; }
+      .doc-type-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="gov-topbar"></div>
+
+<!-- Header + Stepper -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <h1>📋 Your Profile</h1>
+    <p>Fill in your details to check eligibility for government schemes</p>
+  </div>
+  <div class="stepper-wrap">
+    <div class="stepper" id="stepper">
+      <div class="step-item active" data-step="1">
+        <div class="step-circle">1</div>
+        <div class="step-label">Personal</div>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-circle">2</div>
+        <div class="step-label">Details</div>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-circle">3</div>
+        <div class="step-label">Documents</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Flash messages -->
+<div class="flash-wrap">
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% set msg = messages[0] %}
+      <div class="flash-alert {% if '⚠️' in msg %}flash-warn{% else %}flash-success{% endif %}">
+        <span>{{ msg }}</span>
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<!-- Main form -->
+<div class="main-wrap">
+<form id="detailsForm" method="POST" enctype="multipart/form-data" action="{{ url_for('home.add_details') }}">
+
+<div class="form-card">
+
+  <!-- ══ STEP 1 — Personal ══ -->
+  <div class="step-panel active" id="panel-1">
+    <div class="panel-title">👤 Personal Information</div>
+    <div class="panel-sub">Your basic identity details — must match your government ID</div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Full Name <span class="req">*</span></label>
+        <input type="text" name="name" id="f-name" class="field-input"
+               placeholder="As printed on Aadhaar / PAN card" autocomplete="name" required>
+      </div>
+    </div>
+
+    <div class="field-row cols-2">
+      <div class="field-group">
+        <label class="field-label">Date of Birth <span class="req">*</span></label>
+        <div class="dob-wrap">
+          <input type="date" name="dob" id="f-dob" class="field-input"
+                 max="{{ today }}" min="1900-01-01" required
+                 onchange="onDobChange(this)">
+          <i class="bi bi-calendar3 dob-icon"></i>
+        </div>
+        <div class="dob-hint">📅 Type date or click the calendar icon to pick</div>
+        <div id="ageBadge" class="age-badge" style="display:none;"></div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Gender <span class="req">*</span></label>
+        <select name="gender" id="f-gender" class="field-input" required>
+          <option value="">Select Gender</option>
+          <option value="Male">Male — पुरुष</option>
+          <option value="Female">Female — महिला</option>
+          <option value="Other">Other — अन्य</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-row cols-2">
+      <div class="field-group">
+        <label class="field-label">Aadhaar Number <span class="req">*</span></label>
+        <div class="id-field-wrap">
+          <i class="bi bi-credit-card-2-front id-icon"></i>
+          <input type="text" name="aadhar" id="f-aadhar" class="field-input"
+                 placeholder="XXXX XXXX XXXX" maxlength="14" inputmode="numeric"
+                 oninput="formatAadhar(this)" required>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">PAN Number <span class="req">*</span></label>
+        <div class="id-field-wrap">
+          <i class="bi bi-person-badge id-icon"></i>
+          <input type="text" name="pan" id="f-pan" class="field-input"
+                 placeholder="ABCDE1234F" maxlength="10"
+                 style="text-transform:uppercase"
+                 oninput="this.value=this.value.toUpperCase()" required>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2 — Details ══ -->
+  <div class="step-panel" id="panel-2">
+    <div class="panel-title">🏠 Background & Details</div>
+    <div class="panel-sub">Used to match you with eligible government schemes</div>
+
+    <div class="field-row cols-2">
+      <div class="field-group">
+        <label class="field-label">Caste Category</label>
+        <select name="caste" id="f-caste" class="field-input">
+          <option value="">Select Category</option>
+          <option value="General">General — सामान्य</option>
+          <option value="OBC">OBC — अन्य पिछड़ा वर्ग</option>
+          <option value="SC">SC — अनुसूचित जाति</option>
+          <option value="ST">ST — अनुसूचित जनजाति</option>
+          <option value="EWS">EWS — आर्थिक रूप से कमज़ोर</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Occupation <span class="req">*</span></label>
+        <input type="text" name="occupation" id="f-occupation" class="field-input"
+               placeholder="e.g. Farmer, Student, Labourer" required>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">State / UT <span class="req">*</span></label>
+        <select name="state" id="f-state" class="field-input" required>
+          <option value="">Select your State or Union Territory</option>
+          <optgroup label="── States ──">
+            <option>Andhra Pradesh</option><option>Arunachal Pradesh</option>
+            <option>Assam</option><option>Bihar</option><option>Chhattisgarh</option>
+            <option>Goa</option><option>Gujarat</option><option>Haryana</option>
+            <option>Himachal Pradesh</option><option>Jharkhand</option>
+            <option>Karnataka</option><option>Kerala</option>
+            <option>Madhya Pradesh</option><option>Maharashtra</option>
+            <option>Manipur</option><option>Meghalaya</option><option>Mizoram</option>
+            <option>Nagaland</option><option>Odisha</option><option>Punjab</option>
+            <option>Rajasthan</option><option>Sikkim</option>
+            <option>Tamil Nadu</option><option>Telangana</option>
+            <option>Tripura</option><option>Uttar Pradesh</option>
+            <option>Uttarakhand</option><option>West Bengal</option>
+          </optgroup>
+          <optgroup label="── Union Territories ──">
+            <option>Andaman and Nicobar Islands</option><option>Chandigarh</option>
+            <option>Dadra and Nagar Haveli and Daman and Diu</option>
+            <option>Delhi</option><option>Jammu and Kashmir</option>
+            <option>Ladakh</option><option>Lakshadweep</option>
+            <option>Puducherry</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- Income slider -->
+    <div class="field-group" style="margin-bottom:18px;">
+      <label class="field-label">Annual Income (₹) <span class="req">*</span></label>
+      <div class="income-display" id="incomeDisplay">₹1,00,000</div>
+      <input type="range" id="incomeSlider" min="0" max="1500000" step="5000"
+             value="100000" oninput="syncIncome(this.value)">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;">
+        <span>₹0</span><span>₹7.5 Lakh</span><span>₹15 Lakh+</span>
+      </div>
+      <input type="hidden" name="income" id="f-income" value="100000">
+    </div>
+  </div>
+
+  <!-- ══ STEP 3 — Documents ══ -->
+  <div class="step-panel" id="panel-3">
+    <div class="panel-title">🪪 Document Verification</div>
+    <div class="panel-sub">Upload your Aadhaar or PAN card image — we'll automatically verify your name &amp; date of birth</div>
+
+    <!-- Doc type toggle -->
+    <div class="doc-type-row">
+      <label class="doc-type-card selected" id="card-aadhar">
+        <input type="radio" name="doc_type" value="aadhar" checked onchange="selectDocType('aadhar')">
+        <div class="check-badge">✓</div>
+        <div class="doc-icon">🪪</div>
+        <div class="doc-name">Aadhaar Card</div>
+        <div class="doc-sub">12-digit UIDAI ID</div>
+      </label>
+      <label class="doc-type-card" id="card-pan">
+        <input type="radio" name="doc_type" value="pan" onchange="selectDocType('pan')">
+        <div class="check-badge">✓</div>
+        <div class="doc-icon">💳</div>
+        <div class="doc-name">PAN Card</div>
+        <div class="doc-sub">Income Tax Department</div>
+      </label>
+    </div>
+
+    <!-- Drop zone -->
+    <div class="upload-zone" id="uploadZone"
+         ondragover="handleDragOver(event)"
+         ondragleave="handleDragLeave(event)"
+         ondrop="handleDrop(event)">
+      <input type="file" name="doc_image" id="docFileInput"
+             accept="image/jpeg,image/png,image/webp"
+             onchange="handleFileSelect(this)">
+      <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+      <div class="upload-text">Drag &amp; drop your document here</div>
+      <div class="upload-sub">or click to browse &bull; JPG, PNG, WEBP &bull; max 5MB</div>
+    </div>
+
+    <!-- Preview -->
+    <div id="docPreviewWrap">
+      <img id="docPreviewImg" src="" alt="Document preview">
+      <div class="preview-name">
+        <i class="bi bi-image" style="color:var(--india-blue)"></i>
+        <span id="previewFileName"></span>
+        <button type="button" class="preview-remove" onclick="clearFile()">
+          <i class="bi bi-x-circle-fill"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Verify badge -->
+    <div class="verify-badge pending" id="verifyBadge">
+      <i class="bi bi-shield-check" style="font-size:18px"></i>
+      <span id="verifyText">Upload your document — we'll verify name and date of birth on submission</span>
+    </div>
+
+    <!-- Privacy note -->
+    <div style="margin-top:14px;padding:12px 14px;background:#f8fafc;border-radius:10px;border:1px solid var(--border);font-size:12px;color:var(--muted);">
+      <i class="bi bi-lock-fill" style="color:var(--india-green)"></i>
+      <strong>Privacy Note:</strong> Your document is used only to verify name &amp; date of birth. It is <strong>not stored</strong> on our servers.
+    </div>
+  </div>
+
+</div><!-- /form-card -->
+
+<!-- Step navigation -->
+<div class="step-nav">
+  <div class="progress-dots" id="progressDots">
+    <div class="dot active" data-step="1"></div>
+    <div class="dot" data-step="2"></div>
+    <div class="dot" data-step="3"></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <button type="button" class="btn-back" id="btnBack" style="display:none" onclick="goBack()">← Back</button>
+    <button type="button" class="btn-next" id="btnNext" onclick="goNext()">Continue →</button>
+    <button type="submit" class="btn-next btn-submit-main" id="btnSubmit" style="display:none">
+      <i class="bi bi-check2-circle"></i> Submit Profile
+    </button>
+  </div>
+</div>
+
+</form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let currentStep = 1;
+const TOTAL = 3;
+
+// Set max date for DOB to today
+(function() {
+  const d = document.getElementById('f-dob');
+  if (d) {
+    const t = new Date();
+    const iso = t.toISOString().split('T')[0];
+    if (!d.max) d.max = iso;
+  }
+})();
+
+// ── DOB → age badge ──
+function onDobChange(input) {
+  const val = input.value;
+  if (!val) return;
+  const dob   = new Date(val);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  if (today.getMonth() < dob.getMonth() ||
+     (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
+  const badge = document.getElementById('ageBadge');
+  if (age >= 0 && age < 130) {
+    badge.style.display = 'inline-block';
+    badge.textContent   = 'Age: ' + age + ' year' + (age === 1 ? '' : 's');
+    input.classList.add('success');
+    input.classList.remove('error');
+  } else {
+    badge.style.display = 'none';
+    input.classList.add('error');
+  }
+}
+
+// ── Aadhaar formatter ──
+function formatAadhar(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,12);
+  input.value = v.replace(/(\d{4})(?=\d)/g,'$1 ').trim();
+}
+
+// ── Income slider ──
+function syncIncome(val) {
+  const n = parseInt(val);
+  document.getElementById('f-income').value = n;
+  const disp = document.getElementById('incomeDisplay');
+  if (n >= 100000) {
+    const l = (n/100000).toFixed(n % 100000 === 0 ? 0 : 1);
+    disp.textContent = '₹' + l + ' Lakh' + (n >= 200000 ? 's' : '');
+  } else {
+    disp.textContent = '₹' + n.toLocaleString('en-IN');
+  }
+  const pct = (n/1500000)*100;
+  document.getElementById('incomeSlider').style.background =
+    'linear-gradient(90deg, var(--india-blue) ' + pct + '%, var(--border) ' + pct + '%)';
+}
+syncIncome(100000);
+
+// ── Doc type cards ──
+function selectDocType(type) {
+  document.getElementById('card-aadhar').classList.toggle('selected', type === 'aadhar');
+  document.getElementById('card-pan').classList.toggle('selected', type === 'pan');
+}
+
+// ── File handling ──
+function handleFileSelect(input) { if (input.files && input.files[0]) showPreview(input.files[0]); }
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
+function handleDragLeave() { document.getElementById('uploadZone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadZone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) {
+    const dt = new DataTransfer(); dt.items.add(f);
+    document.getElementById('docFileInput').files = dt.files;
+    showPreview(f);
+  }
+}
+function showPreview(file) {
+  if (file.size > 5*1024*1024) { setVerify('fail','❌ File too large — max 5MB allowed'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('docPreviewImg').src = e.target.result;
+    document.getElementById('docPreviewWrap').style.display = 'block';
+    document.getElementById('previewFileName').textContent = file.name;
+    setVerify('pending','📋 Document selected — name & DOB will be verified on submission');
+  };
+  reader.readAsDataURL(file);
+}
+function clearFile() {
+  document.getElementById('docFileInput').value = '';
+  document.getElementById('docPreviewWrap').style.display = 'none';
+  setVerify('pending','Upload your document — we\'ll verify name and date of birth on submission');
+}
+function setVerify(state, msg) {
+  const b = document.getElementById('verifyBadge');
+  b.className = 'verify-badge ' + state;
+  document.getElementById('verifyText').textContent = msg;
+}
+
+// ── Stepper UI ──
+function updateStepper() {
+  document.querySelectorAll('.step-item').forEach(item => {
+    const s = parseInt(item.dataset.step);
+    item.classList.remove('active','done');
+    if (s === currentStep) item.classList.add('active');
+    else if (s < currentStep) item.classList.add('done');
+  });
+  document.querySelectorAll('.dot').forEach(dot => {
+    const s = parseInt(dot.dataset.step);
+    dot.classList.remove('active','done');
+    if (s === currentStep) dot.classList.add('active');
+    else if (s < currentStep) dot.classList.add('done');
+  });
+  document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + currentStep).classList.add('active');
+  document.getElementById('btnBack').style.display   = currentStep > 1    ? '' : 'none';
+  document.getElementById('btnNext').style.display   = currentStep < TOTAL ? '' : 'none';
+  document.getElementById('btnSubmit').style.display = currentStep === TOTAL ? '' : 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Validation ──
+function highlight(id) {
+  const el = document.getElementById(id);
+  el.classList.add('error'); el.focus();
+  setTimeout(() => el.classList.remove('error'), 2500);
+}
+function validateStep(step) {
+  if (step === 1) {
+    if (!document.getElementById('f-name').value.trim())  { highlight('f-name');   alert('Please enter your full name.'); return false; }
+    if (!document.getElementById('f-dob').value)           { highlight('f-dob');    alert('Please select your date of birth.'); return false; }
+    if (!document.getElementById('f-gender').value)        { highlight('f-gender'); alert('Please select your gender.'); return false; }
+    const aadhar = document.getElementById('f-aadhar').value.replace(/\s/g,'');
+    if (aadhar && aadhar.length !== 12) { highlight('f-aadhar'); alert('Aadhaar must be exactly 12 digits.'); return false; }
+    const pan = document.getElementById('f-pan').value;
+    if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { highlight('f-pan'); alert('Invalid PAN format. Example: ABCDE1234F'); return false; }
+    return true;
+  }
+  if (step === 2) {
+    if (!document.getElementById('f-state').value)      { highlight('f-state');      alert('Please select your state.'); return false; }
+    if (!document.getElementById('f-occupation').value.trim()) { highlight('f-occupation'); alert('Please enter your occupation.'); return false; }
+    return true;
+  }
+  return true; // step 3 optional
+}
+
+function goNext() { if (validateStep(currentStep) && currentStep < TOTAL) { currentStep++; updateStepper(); } }
+function goBack() { if (currentStep > 1) { currentStep--; updateStepper(); } }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && currentStep < TOTAL && document.activeElement.tagName !== 'SELECT') {
+    e.preventDefault(); goNext();
+  }
+});
+</script>
+</body>
+</html>
