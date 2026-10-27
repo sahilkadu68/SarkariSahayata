@@ -4,6 +4,7 @@ from flaskr import mysql
 import click
 from flask import current_app, g
 from werkzeug.security import generate_password_hash
+from flaskr.pii import decode_key, email_lookup, encrypt_email
 
 def get_db():
     """Get a per-request MySQL connection and reconnect if needed."""
@@ -56,10 +57,12 @@ def init_db():
     master_user = cfg.get('MASTER_USER') or 'sarkariadmin1'
     mail_user = cfg.get('MAIL_USERNAME') or 'admin@sarkarisahayata.gov.in'
     master_pass = cfg.get('MASTER_PASSWORD') or 'sarkari123'
+    key = decode_key(cfg.get('PERSONAL_DATA_ENCRYPTION_KEY'))
 
     cur.execute(
-        "INSERT INTO user (username, email, password, user_type, is_registered) VALUES (%s, %s, %s, %s, 1)",
-        (master_user, mail_user, generate_password_hash(master_pass), "master")
+        "INSERT INTO user (username, email, email_lookup, password, user_type, is_registered) VALUES (%s, %s, %s, %s, %s, 1)",
+        (master_user, encrypt_email(mail_user, master_user, key),
+         email_lookup(mail_user, key), generate_password_hash(master_pass), "master")
     )
     db.commit()
     cur.close()
@@ -72,14 +75,16 @@ def create_master():
     master_user = cfg.get('MASTER_USER') or 'sarkariadmin1'
     mail_user = cfg.get('MAIL_USERNAME') or 'admin@sarkarisahayata.gov.in'
     master_pass = cfg.get('MASTER_PASSWORD') or 'sarkari123'
+    key = decode_key(cfg.get('PERSONAL_DATA_ENCRYPTION_KEY'))
 
     try:
         cur.execute("ALTER TABLE user ADD user_type VARCHAR(15) DEFAULT 'user';")
     except Exception:
         pass
     cur.execute(
-        "INSERT INTO user (username, email, password, user_type, is_registered) VALUES (%s, %s, %s, %s, 1)",
-        (master_user, mail_user, generate_password_hash(master_pass), "master")
+        "INSERT INTO user (username, email, email_lookup, password, user_type, is_registered) VALUES (%s, %s, %s, %s, %s, 1)",
+        (master_user, encrypt_email(mail_user, master_user, key),
+         email_lookup(mail_user, key), generate_password_hash(master_pass), "master")
     )
     db.commit()
     cur.close() 

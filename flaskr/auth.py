@@ -10,6 +10,7 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from flaskr.db import get_db
 from flaskr import email, mail, limiter
+from flaskr.pii import configured_key, email_lookup, encrypt_email, decrypt_email, mask_email
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -142,10 +143,12 @@ def register():
 
         db  = get_db()
         cur = db.cursor()
+        key = configured_key()
+        email_index = email_lookup(emails, key)
 
         # ── STEP 1: Check if username or email already exists ────────────
-        cur.execute("SELECT id FROM user WHERE username = %s OR email = %s",
-                    (username, emails))
+        cur.execute("SELECT id FROM user WHERE username = %s OR email_lookup = %s",
+                    (username, email_index))
         existing = cur.fetchone()
         if existing:
             flash("Username or email is already taken. Please use a different one.")
@@ -154,9 +157,10 @@ def register():
         # ── STEP 2: Insert the new user ──────────────────────────────────
         try:
             cur.execute(
-                "INSERT INTO user (username, email, password, is_registered) "
-                "VALUES (%s, %s, %s, 0)",
-                (username, emails, generate_password_hash(password)),
+                "INSERT INTO user (username, email, email_lookup, password, is_registered) "
+                "VALUES (%s, %s, %s, %s, 0)",
+                (username, encrypt_email(emails, username, key), email_index,
+                 generate_password_hash(password)),
             )
             try:
                 db.commit()
@@ -173,6 +177,8 @@ def register():
         if not user:
             flash("Registration failed. Please try again.")
             return render_template('auth/register.html')
+
+        user['email'] = decrypt_email(user['email'], user['username'], key)
 
         # ── STEP 4: Generate and save OTP ───────────────────────────────
         try:
@@ -205,7 +211,7 @@ def register():
             flash(f"Account created! Email delivery failed. Your OTP is: {otp} "
                   f"(valid 10 minutes). Use it on the next page.")
 
-        return redirect(url_for("auth.verify_otp", email_s=user['email']))
+        return redirect(url_for("auth.verify_otp", identifier=user['id']))
 
     return render_template('auth/register.html')
 
@@ -283,20 +289,30 @@ def logout():
 # =========================================
 # VERIFY OTP
 # =========================================
-@bp.route('/verify-otp/<email_s>', methods=('GET', 'POST'))
-def verify_otp(email_s):
+@bp.route('/verify-otp/<identifier>', methods=('GET', 'POST'))
+def verify_otp(identifier):
 
     duration = 600  # 10 minutes
 
     db  = get_db()
     cur = db.cursor()
 
-    cur.execute("SELECT * FROM user WHERE email = %s", (email_s,))
+    key = configured_key()
+    if identifier.isdigit():
+        cur.execute("SELECT * FROM user WHERE id = %s", (int(identifier),))
+    else:
+        # Compatibility for short-lived pre-migration OTP pages; all new URLs
+        # contain only the numeric user ID, never the email address.
+        cur.execute("SELECT * FROM user WHERE email_lookup = %s",
+                    (email_lookup(identifier, key),))
     user = cur.fetchone()
 
     if not user:
         flash("Invalid session. Please register again.")
         return redirect(url_for("auth.register"))
+
+    if not identifier.isdigit():
+        return redirect(url_for("auth.verify_otp", identifier=user['id']))
 
     record = get_otp_record(user['id'])
 
@@ -330,7 +346,10 @@ def verify_otp(email_s):
         else:
             flash("Invalid or expired OTP. Please try again.")
 
-    return render_template('auth/verify_otp.html')
+    return render_template(
+        'auth/verify_otp.html',
+        email_s=mask_email(decrypt_email(user['email'], user['username'], key)),
+    )
 
 
 # =========================================

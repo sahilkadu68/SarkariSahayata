@@ -3,6 +3,7 @@ from flask import (
     render_template, request, url_for, abort
 )
 from flaskr.db import get_db
+from flaskr.pii import configured_key, encrypt_profile, decrypt_profile, ELIGIBILITY_FIELDS
 import MySQLdb.cursors
 
 
@@ -186,8 +187,6 @@ def add_details():
         caste      = request.form.get("caste", "")
         state      = request.form.get("state", "")
         occupation = request.form.get("occupation", "").strip()
-        aadhar     = request.form.get("aadhar", "").strip()
-        pan        = request.form.get("pan", "").strip()
         doc_type   = request.form.get("doc_type", "")         # "aadhar" or "pan"
 
         # ── Compute age from DOB ──
@@ -312,6 +311,12 @@ def add_details():
                 doc_verified = False
 
         # ── Upsert user details ──
+        profile = encrypt_profile({
+            "name": name, "age": age, "dob": dob_str or None,
+            "gender": gender, "income": income, "caste": caste,
+            "states": state, "occupation": occupation,
+            "doc_type": doc_type, "doc_verified": doc_verified,
+        }, g.user["id"], configured_key())
         cursor.execute("SELECT id FROM user_details WHERE user_id=%s", (g.user["id"],))
         existing = cursor.fetchone()
 
@@ -319,24 +324,25 @@ def add_details():
             cursor.execute("""
                 UPDATE user_details
                 SET name=%s, age=%s, dob=%s, gender=%s, income=%s, caste=%s,
-                    states=%s, occupation=%s, aadhar=%s, pan=%s,
-                    doc_type=%s, doc_verified=%s
+                    states=%s, occupation=%s, doc_type=%s, doc_verified=%s
                 WHERE user_id=%s
             """, (
-                name, age, dob_str or None, gender, income, caste,
-                state, occupation, aadhar, pan,
-                doc_type, doc_verified, g.user["id"]
+                profile["name"], profile["age"], profile["dob"],
+                profile["gender"], profile["income"], profile["caste"],
+                profile["states"], profile["occupation"],
+                profile["doc_type"], profile["doc_verified"], g.user["id"]
             ))
         else:
             cursor.execute("""
                 INSERT INTO user_details
-                (name, age, dob, gender, income, caste, states,
-                 occupation, aadhar, pan, doc_type, doc_verified, user_id)
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                (name, age, dob, gender, income, caste, states, occupation,
+                 doc_type, doc_verified, user_id)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
             """, (
-                name, age, dob_str or None, gender, income, caste,
-                state, occupation, aadhar, pan,
-                doc_type, doc_verified, g.user["id"]
+                profile["name"], profile["age"], profile["dob"],
+                profile["gender"], profile["income"], profile["caste"],
+                profile["states"], profile["occupation"],
+                profile["doc_type"], profile["doc_verified"], g.user["id"]
             ))
 
         db.commit()
@@ -368,7 +374,8 @@ def eligibility():
 
     # Get user details
     cursor.execute("""
-        SELECT * FROM user_details
+        SELECT name, age, dob, gender, income, caste, states, occupation, user_id
+        FROM user_details
         WHERE user_id = %s
     """, (g.user["id"],))
 
@@ -378,6 +385,7 @@ def eligibility():
         flash("Please add your details first.")
         return redirect(url_for("home.add_details"))
 
+    user = decrypt_profile(user, g.user["id"], configured_key(), ELIGIBILITY_FIELDS)
     import datetime as _dt
     age = int(user["age"] or 0)
     if user.get("dob"):

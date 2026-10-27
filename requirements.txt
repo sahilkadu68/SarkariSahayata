@@ -1,1 +1,2 @@
 Flask-Limiter>=3.5,<5
+cryptography>=42,<47

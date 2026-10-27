@@ -35,6 +35,7 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-sarkari-sahayata-secret-key-2026'),
+        PERSONAL_DATA_ENCRYPTION_KEY=os.environ.get('PERSONAL_DATA_ENCRYPTION_KEY'),
         # Gunicorn workers do not share this backend. Use shared storage (for
         # example Redis) before relying on limits across multiple workers.
         RATELIMIT_STORAGE_URI='memory://',
@@ -59,6 +60,10 @@ def create_app(test_config=None):
         app.config.from_pyfile('config.py', silent=True)
     else:
         app.config.from_mapping(test_config)
+
+    # Fail closed rather than start with a missing or invalid data key.
+    from .pii import decode_key
+    decode_key(app.config.get('PERSONAL_DATA_ENCRYPTION_KEY'))
 
     try:
         os.makedirs(app.instance_path)

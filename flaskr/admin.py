@@ -6,6 +6,7 @@ from flask import (
 from flaskr.db import get_db
 from flaskr import limiter
 from flaskr.auth import verify_and_upgrade_password
+from flaskr.pii import configured_key, decrypt_value, decrypt_email
 import MySQLdb.cursors
 import csv, io, datetime
 
@@ -95,13 +96,6 @@ def info_dashboard():
     db  = get_db()
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     gender = [0, 0]
-    try:
-        cur.execute("SELECT COUNT(*) AS c FROM user_details WHERE gender='Male'")
-        gender[0] = cur.fetchone()["c"]
-        cur.execute("SELECT COUNT(*) AS c FROM user_details WHERE gender='Female'")
-        gender[1] = cur.fetchone()["c"]
-    except Exception:
-        pass
     cur.execute("SELECT COUNT(*) AS c FROM user");           reg   = cur.fetchone()["c"]
     cur.execute("SELECT COUNT(*) AS c FROM user_details");   info  = cur.fetchone()["c"]
     cur.execute("SELECT COUNT(*) AS c FROM schemes");        total = cur.fetchone()["c"]
@@ -110,29 +104,37 @@ def info_dashboard():
     for c in categories:
         cur.execute("SELECT COUNT(*) AS c FROM schemes WHERE category=%s", (c,))
         cat_count.append(cur.fetchone()["c"])
-    caste_count = []
-    for c in ["General","OBC","SC","ST","Other"]:
-        try:
-            cur.execute("SELECT COUNT(*) AS c FROM user_details WHERE caste=%s", (c,))
-            caste_count.append(cur.fetchone()["c"])
-        except Exception:
-            caste_count.append(0)
+    aggregate_counts = {}
+    cur.execute("SELECT user_id, gender, caste, occupation FROM user_details")
+    profile_rows = cur.fetchall()
+    key = configured_key()
+    for profile in profile_rows:
+        owner_id = profile.get("user_id")
+        for field in ("gender", "caste", "occupation"):
+            profile[field] = decrypt_value(profile.get(field), field, owner_id, key)
+        if profile.get("gender") == "Male":
+            gender[0] += 1
+        elif profile.get("gender") == "Female":
+            gender[1] += 1
+        caste = profile.get("caste")
+        if caste:
+            aggregate_counts[caste] = aggregate_counts.get(caste, 0) + 1
+    caste_count = [aggregate_counts.get(c, 0) for c in ["General", "OBC", "SC", "ST", "Other"]]
     recent_logs = []
     try:
         cur.execute("SELECT * FROM admin_activity_log ORDER BY created_at DESC LIMIT 5")
         recent_logs = cur.fetchall()
     except Exception:
         pass
-    occupations = []
-    try:
-        cur.execute(
-            "SELECT occupation, COUNT(*) AS c FROM user_details "
-            "WHERE occupation IS NOT NULL AND occupation != '' "
-            "GROUP BY occupation ORDER BY c DESC LIMIT 6"
-        )
-        occupations = cur.fetchall()
-    except Exception:
-        pass
+    occupation_counts = {}
+    for profile in profile_rows:
+        occupation = profile.get("occupation")
+        if occupation:
+            occupation_counts[occupation] = occupation_counts.get(occupation, 0) + 1
+    occupations = [
+        {"occupation": occupation, "c": count}
+        for occupation, count in sorted(occupation_counts.items(), key=lambda item: item[1], reverse=True)[:6]
+    ]
     cur.close()
     return render_template(
         "admin/dashboard.html",
@@ -278,14 +280,18 @@ def view_user():
     db  = get_db()
     cur = db.cursor(MySQLdb.cursors.DictCursor)
     search = request.args.get("q", "").strip()
-    if search:
-        cur.execute(
-            "SELECT * FROM user WHERE username LIKE %s OR email LIKE %s",
-            (f"%{search}%", f"%{search}%")
-        )
-    else:
-        cur.execute("SELECT * FROM user ORDER BY id DESC")
+    cur.execute("SELECT * FROM user ORDER BY id DESC")
     users = cur.fetchall()
+    key = configured_key()
+    search_lower = search.casefold()
+    users = [
+        {**user, "email": decrypt_email(user["email"], user["username"], key)}
+        for user in users
+    ]
+    if search:
+        users = [user for user in users
+                 if search_lower in user["username"].casefold()
+                 or search_lower in user["email"].casefold()]
     return render_template(
         "admin/view_users.html", users=users, search=search,
         admin_username=session.get("admin_username","Admin"),

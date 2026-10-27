@@ -17,6 +17,3 @@ build/
 .env
 .env.*
 !.env.example
-
-# Deployment Guide (local only)
-DEPLOYMENT_GUIDE.md

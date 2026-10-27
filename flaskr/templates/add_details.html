@@ -220,7 +220,7 @@
   <!-- ══ STEP 1 — Personal ══ -->
   <div class="step-panel active" id="panel-1">
     <div class="panel-title">👤 Personal Information</div>
-    <div class="panel-sub">Your basic identity details — must match your government ID</div>
+    <div class="panel-sub">Your basic identity details — Aadhaar and PAN numbers are not collected.</div>
 
     <div class="field-row">
       <div class="field-group">
@@ -253,27 +253,6 @@
       </div>
     </div>
 
-    <div class="field-row cols-2">
-      <div class="field-group">
-        <label class="field-label">Aadhaar Number <span class="req">*</span></label>
-        <div class="id-field-wrap">
-          <i class="bi bi-credit-card-2-front id-icon"></i>
-          <input type="text" name="aadhar" id="f-aadhar" class="field-input"
-                 placeholder="XXXX XXXX XXXX" maxlength="14" inputmode="numeric"
-                 oninput="formatAadhar(this)" required>
-        </div>
-      </div>
-      <div class="field-group">
-        <label class="field-label">PAN Number <span class="req">*</span></label>
-        <div class="id-field-wrap">
-          <i class="bi bi-person-badge id-icon"></i>
-          <input type="text" name="pan" id="f-pan" class="field-input"
-                 placeholder="ABCDE1234F" maxlength="10"
-                 style="text-transform:uppercase"
-                 oninput="this.value=this.value.toUpperCase()" required>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- ══ STEP 2 — Details ══ -->
@@ -346,7 +325,7 @@
   <!-- ══ STEP 3 — Documents ══ -->
   <div class="step-panel" id="panel-3">
     <div class="panel-title">🪪 Document Verification</div>
-    <div class="panel-sub">Upload your Aadhaar or PAN card image — we'll automatically verify your name &amp; date of birth</div>
+    <div class="panel-sub">Optional: upload an Aadhaar or PAN image to verify your name and date of birth. The image is sent to an external verification provider and is not saved by this app; it may contain your full ID number.</div>
 
     <!-- Doc type toggle -->
     <div class="doc-type-row">
@@ -461,12 +440,6 @@ function onDobChange(input) {
   }
 }
 
-// ── Aadhaar formatter ──
-function formatAadhar(input) {
-  let v = input.value.replace(/\D/g,'').substring(0,12);
-  input.value = v.replace(/(\d{4})(?=\d)/g,'$1 ').trim();
-}
-
 // ── Income slider ──
 function syncIncome(val) {
   const n = parseInt(val);
@@ -559,10 +532,6 @@ function validateStep(step) {
     if (!document.getElementById('f-name').value.trim())  { highlight('f-name');   alert('Please enter your full name.'); return false; }
     if (!document.getElementById('f-dob').value)           { highlight('f-dob');    alert('Please select your date of birth.'); return false; }
     if (!document.getElementById('f-gender').value)        { highlight('f-gender'); alert('Please select your gender.'); return false; }
-    const aadhar = document.getElementById('f-aadhar').value.replace(/\s/g,'');
-    if (aadhar && aadhar.length !== 12) { highlight('f-aadhar'); alert('Aadhaar must be exactly 12 digits.'); return false; }
-    const pan = document.getElementById('f-pan').value;
-    if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) { highlight('f-pan'); alert('Invalid PAN format. Example: ABCDE1234F'); return false; }
     return true;
   }
   if (step === 2) {
