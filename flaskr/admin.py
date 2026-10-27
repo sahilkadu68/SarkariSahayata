@@ -4,6 +4,8 @@ from flask import (
     make_response, current_app
 )
 from flaskr.db import get_db
+from flaskr import limiter
+from flaskr.auth import verify_and_upgrade_password
 import MySQLdb.cursors
 import csv, io, datetime
 
@@ -33,6 +35,7 @@ def log_activity(action, detail=""):
         pass
 
 @admin_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"])
 def admin_login():
     if session.get("admin_logged_in"):
         return redirect(url_for("admin.info_dashboard"))
@@ -56,10 +59,16 @@ def admin_login():
                 )
                 row = cur.fetchone()
                 if row:
-                    from werkzeug.security import check_password_hash
-                    if check_password_hash(row["password"], password):
+                    password_valid, upgraded_hash = verify_and_upgrade_password(
+                        row["password"], password
+                    )
+                    if password_valid:
                         valid = True
                         session["admin_role"] = row["user_type"]
+                        if upgraded_hash:
+                            cur.execute("UPDATE user SET password=%s WHERE id=%s",
+                                        (upgraded_hash, row["id"]))
+                            db.commit()
             except Exception:
                 pass
         if valid:

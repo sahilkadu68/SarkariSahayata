@@ -1,6 +1,6 @@
 import os
 from flask_mail import Mail
-from flask import Flask
+from flask import Flask, request
 from flask_mysqldb import MySQL
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -9,7 +9,19 @@ mail = Mail()
 mysql = MySQL()
 
 # Create limiter globally (NOT inside function)
-limiter = Limiter(key_func=get_remote_address)
+def rate_limit_key():
+    # Gunicorn is bound to loopback behind Nginx (see DEPLOYMENT_GUIDE.md).
+    # Trust Nginx's overwritten X-Real-IP only for a loopback peer; ignore
+    # forwarded headers from every other peer.
+    peer = request.remote_addr
+    if peer in ('127.0.0.1', '::1'):
+        forwarded_ip = request.headers.get('X-Real-IP')
+        if forwarded_ip:
+            return forwarded_ip
+    return get_remote_address()
+
+
+limiter = Limiter(key_func=rate_limit_key)
 
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -23,6 +35,9 @@ def create_app(test_config=None):
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get('SECRET_KEY', 'dev-sarkari-sahayata-secret-key-2026'),
+        # Gunicorn workers do not share this backend. Use shared storage (for
+        # example Redis) before relying on limits across multiple workers.
+        RATELIMIT_STORAGE_URI='memory://',
         MYSQL_HOST=os.environ.get('MYSQL_HOST', '127.0.0.1'),
         MYSQL_USER=os.environ.get('MYSQL_USER', 'root'),
         MYSQL_PASSWORD=os.environ.get('MYSQL_PASSWORD', ''),
@@ -54,6 +69,10 @@ def create_app(test_config=None):
     mail.init_app(app)
     mysql.init_app(app)
     limiter.init_app(app)
+
+    @app.errorhandler(429)
+    def rate_limit_exceeded(error):
+        return "Too many login attempts. Please wait a minute and try again.", 429
 
     from . import db
     db.init_app(app)

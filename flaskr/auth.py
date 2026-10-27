@@ -15,6 +15,26 @@ from flaskr import email, mail, limiter
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 
+def verify_and_upgrade_password(stored_password, supplied_password):
+    """Verify modern hashes and transparently upgrade legacy plaintext rows."""
+    if not isinstance(stored_password, str):
+        return False, None
+
+    if stored_password.startswith(('scrypt:', 'pbkdf2:')):
+        try:
+            return check_password_hash(stored_password, supplied_password), None
+        except (ValueError, TypeError):
+            return False, None
+
+    # Older deployments may have plaintext passwords. Upgrade only after a
+    # constant-time successful match; no schema change or bulk migration needed.
+    import hmac
+    if hmac.compare_digest(stored_password.encode('utf-8'),
+                           supplied_password.encode('utf-8')):
+        return True, generate_password_hash(supplied_password)
+    return False, None
+
+
 # ---------------- PASSWORD VALIDATION ----------------
 
 def validate_password(password, username):
@@ -99,7 +119,6 @@ def get_otp_record(user_id):
 # REGISTER
 # =========================================
 @bp.route('/register', methods=('GET', 'POST'))
-@limiter.limit("5 per minute")
 def register():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -195,7 +214,7 @@ def register():
 # LOGIN
 # =========================================
 @bp.route('/login', methods=('GET', 'POST'))
-@limiter.limit("5 per minute")
+@limiter.limit("5 per minute", methods=["POST"])
 def login():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
@@ -210,9 +229,17 @@ def login():
 
         if user is None:
             error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
-            error = 'Incorrect password.'
-        elif user['is_registered'] == 0:
+        else:
+            password_valid, upgraded_hash = verify_and_upgrade_password(
+                user['password'], password
+            )
+            if not password_valid:
+                error = 'Incorrect password.'
+            elif upgraded_hash:
+                cur.execute("UPDATE user SET password = %s WHERE id = %s",
+                            (upgraded_hash, user['id']))
+                db.commit()
+        if error is None and user['is_registered'] == 0:
             error = 'Email not verified. Please check your email for the OTP.'
 
         if error is None:
@@ -257,7 +284,6 @@ def logout():
 # VERIFY OTP
 # =========================================
 @bp.route('/verify-otp/<email_s>', methods=('GET', 'POST'))
-@limiter.limit("5 per minute")
 def verify_otp(email_s):
 
     duration = 600  # 10 minutes
